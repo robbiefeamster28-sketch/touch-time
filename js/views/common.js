@@ -85,13 +85,18 @@ TT.views.common = (function () {
   // options: [{id,label}], action sets the chosen id.
   function chips(options, current, action) {
     return (
-      '<div class="chips">' +
+      '<div class="chips-wrap">' +
+      '<button class="chips-arrow left" data-action="chips-step" data-value="-1" aria-label="Scroll left" tabindex="-1">‹</button>' +
+      '<div class="chips" data-row="' + action + '" role="group">' +
       options.map(function (o) {
         return '<button class="chip" aria-pressed="' + (current === o.id) + '" data-action="' + action + '" data-value="' + o.id + '">' + o.label + "</button>";
       }).join("") +
+      "</div>" +
+      '<button class="chips-arrow right" data-action="chips-step" data-value="1" aria-label="Scroll right" tabindex="-1">›</button>' +
       "</div>"
     );
   }
+
 
   function searchControls(query, levelFilter) {
     var levels = [

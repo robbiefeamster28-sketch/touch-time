@@ -181,8 +181,32 @@ h3.need { font-size: 21px; margin: 18px 0 6px; }
 .mini h3 { font-size: 18px; }
 
 /* ---------- filters ---------- */
-.chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px 10px; padding: 2px 16px; scrollbar-width: none; }
+/* Sideways chip rows: swipe on touch, drag/wheel/arrows with a mouse (js/core/scrollrow.js). */
+.chips-wrap { position: relative; margin: 0 -16px 10px; }
+.chips {
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px 16px;
+  scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 16px; touch-action: pan-x pan-y;
+}
 .chips::-webkit-scrollbar { display: none; }
+.chips.dragging { cursor: grabbing; user-select: none; }
+.chips.dragging .chip { pointer-events: none; }
+/* Fades show that more chips are hidden off that edge. */
+.chips-wrap.more-left .chips { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44px); mask-image: linear-gradient(90deg, transparent 0, #000 44px); }
+.chips-wrap.more-right .chips { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); }
+.chips-wrap.more-left.more-right .chips { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44px, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 44px, #000 calc(100% - 44px), transparent); }
+.chips-arrow {
+  position: absolute; top: 50%; z-index: 1; transform: translateY(-50%);
+  width: 34px; height: 34px; border-radius: 50%; display: none; place-items: center; padding: 0 0 3px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 22px; line-height: 1; box-shadow: var(--shadow);
+}
+.chips-arrow.left { left: 6px; }
+.chips-arrow.right { right: 6px; }
+/* Arrows only for mouse users; touch screens swipe. */
+@media (hover: hover) and (pointer: fine) {
+  .chips { cursor: grab; }
+  .chips-wrap.more-left .chips-arrow.left, .chips-wrap.more-right .chips-arrow.right { display: grid; }
+}
 .chip { flex: none; padding: 8px 14px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; font-weight: 700; font-size: 14px; }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .srch, .field {

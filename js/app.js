@@ -52,7 +52,9 @@ window.TT = window.TT || {};
   }
 
   function render() {
+    TT.scrollRows.save();
     u.$("app").innerHTML = V.common.topbar() + '<div class="page">' + page() + "</div>" + V.common.tabs(activeTab());
+    TT.scrollRows.restore();
   }
 
   function top() {
@@ -166,6 +168,8 @@ window.TT = window.TT || {};
       top();
       u.toast("Account deleted");
     },
+
+    "chips-step": function (el) { TT.scrollRows.step(el, +el.dataset.value); },
 
     "timer-pause": function () { TT.timer.pause(); },
     "timer-close": function () { TT.timer.close(); },
