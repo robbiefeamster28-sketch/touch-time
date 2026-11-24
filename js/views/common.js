@@ -8,11 +8,14 @@ TT.views.common = (function () {
   var esc = u.esc, fmt = u.fmt;
 
   function header(L) {
-    var sk = s.streak();
+    var sk = s.streak(), p = store.current();
+    var cloud = TT.cloud.status();
     return (
-      "<header><h1>Touch Time</h1><div class=\"lvl\">" +
-      (sk ? "🔥 " + sk + "-day streak · " : "") +
-      "Level " + L.index + " this month<b>" + TT.AVATARS[store.state.avatar].emoji + " " + L.name + "</b></div></header>" +
+      "<header><h1>Touch Time</h1>" +
+      '<button class="acct" data-action="open-account" aria-label="Account: ' + esc(p.name) + '">' +
+      TT.AVATARS[store.state.avatar].emoji + " " + esc(p.name) +
+      (cloud === "synced" || cloud === "saving" ? ' <span aria-hidden="true">☁️</span>' : "") + "</button></header>" +
+      '<p class="lvl">' + (sk ? "🔥 " + sk + "-day streak · " : "") + "Level " + L.index + " this month · <b>" + L.name + "</b></p>" +
       '<div class="xp" aria-label="Progress to next level"><i style="width:' + L.pct + '%"></i></div>'
     );
   }

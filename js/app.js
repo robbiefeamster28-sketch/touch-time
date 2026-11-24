@@ -17,10 +17,21 @@ window.TT = window.TT || {};
     test: null, // open test id
     practice: null, // open practice id
     builder: null, // practice being built: { id, name, drills, ... }
-    builderTopic: "dribbling"
+    builderTopic: "dribbling",
+    account: false, // account page open
+    pinFor: null // player id waiting for their PIN
   };
 
+  // Back to the main tabs, e.g. after switching player.
+  function resetUi() {
+    ui.view = "practices";
+    ui.drill = ui.test = ui.practice = ui.builder = ui.pinFor = null;
+    ui.account = false;
+    ui.query = "";
+  }
+
   function page() {
+    if (ui.account) return V.account.page();
     if (ui.builder) return V.practices.builder(ui);
     if (ui.test) return V.tests.detail(ui);
     if (ui.drill) return V.drills.detail(ui);
@@ -37,7 +48,14 @@ window.TT = window.TT || {};
   }
 
   function render() {
-    u.$("app").innerHTML = V.common.header(s.level()) + page();
+    var app = u.$("app");
+    if (!store.current()) {
+      app.innerHTML = ui.pinFor ? V.account.pinEntry(ui) : V.account.signIn(ui);
+      var first = u.$(ui.pinFor ? "pinin" : "pname");
+      if (first && ui.pinFor) first.focus();
+      return;
+    }
+    app.innerHTML = V.common.header(s.level()) + page();
   }
 
   function top() {
@@ -127,6 +145,28 @@ window.TT = window.TT || {};
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
     },
 
+    "choose-player": function (el) {
+      var id = el.dataset.id;
+      if (store.hasPin(id)) { ui.pinFor = id; return top(); }
+      store.signIn(id);
+      resetUi();
+      top();
+    },
+    "cancel-pin": function () { ui.pinFor = null; top(); },
+    "open-account": function () { ui.account = true; top(); },
+    "close-account": function () { ui.account = false; top(); },
+    "sign-out": function () { store.signOut(); resetUi(); top(); },
+    "remove-pin": function () { store.setPin(""); render(); u.toast("PIN removed"); },
+    "sync-retry": function () { TT.cloud.retry(); },
+    "delete-player": function () {
+      var name = store.current().name;
+      if (!window.confirm("Delete " + name + "’s account and all their progress? This can’t be undone.")) return;
+      store.deletePlayer();
+      resetUi();
+      top();
+      u.toast("Account deleted");
+    },
+
     "timer-pause": function () { TT.timer.pause(); },
     "timer-close": function () { TT.timer.close(); },
     "rest-skip": function () { TT.timer.skipRest(); }
@@ -138,6 +178,53 @@ window.TT = window.TT || {};
     actions[el.dataset.action](el);
   });
 
+  // ---- forms ----
+
+  var forms = {
+    "create-player": function (f) {
+      var name = f.name.value.trim(), pin = f.pin.value.trim();
+      if (!name) return u.toast("Enter a player name.");
+      if (pin && !/^[0-9]{4}$/.test(pin)) return u.toast("A PIN is 4 numbers.");
+      var taken = store.players().some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
+      if (taken) return u.toast("There’s already a player called " + name + ".");
+      store.createPlayer(name, pin);
+      ui.draftName = "";
+      resetUi();
+      top();
+      u.toast("Welcome, " + store.current().name + "!");
+    },
+    pin: function (f) {
+      if (store.signIn(ui.pinFor, f.pin.value.trim())) {
+        resetUi();
+        top();
+      } else {
+        f.pin.value = "";
+        u.toast("That PIN isn’t right.");
+      }
+    },
+    rename: function (f) {
+      var name = f.name.value.trim();
+      if (!name) return;
+      store.renamePlayer(name);
+      render();
+      u.toast("Name saved");
+    },
+    "set-pin": function (f) {
+      var pin = f.pin.value.trim();
+      if (!/^[0-9]{4}$/.test(pin)) return u.toast("A PIN is 4 numbers.");
+      store.setPin(pin);
+      render();
+      u.toast("PIN saved");
+    }
+  };
+
+  document.addEventListener("submit", function (e) {
+    var kind = e.target.dataset.form;
+    if (!forms[kind]) return;
+    e.preventDefault();
+    forms[kind](e.target);
+  });
+
   // ---- typing and file inputs ----
 
   document.addEventListener("input", function (e) {
@@ -146,6 +233,8 @@ window.TT = window.TT || {};
       ui.query = e.target.value;
       var box = u.$("results");
       if (box) box.innerHTML = ui.view === "tests" ? V.tests.results(ui) : V.drills.results(ui);
+    } else if (e.target.id === "pname") {
+      ui.draftName = e.target.value; // kept if the screen redraws while typing
     } else if (kind === "practice-name" && ui.builder) {
       ui.builder.name = e.target.value;
     }
@@ -162,6 +251,16 @@ window.TT = window.TT || {};
     }).catch(function () {
       u.toast("That file isn’t a Touch Time backup.");
     });
+  });
+
+  // Redraw when online saving changes state (unless a timer is on screen).
+  TT.cloud.onStatus(function () {
+    var typing = document.activeElement && /INPUT/.test(document.activeElement.tagName);
+    if (!typing) render();
+  });
+  TT.cloud.start(function () {
+    if (store.current() && !store.findPlayer(store.current().id)) store.signOut();
+    render();
   });
 
   render();

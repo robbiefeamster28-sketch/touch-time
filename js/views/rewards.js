@@ -123,14 +123,6 @@ TT.views.rewards = (function () {
     }).join("") + "</div>";
   }
 
-  function backup() {
-    return (
-      '<h2 class="sec">Backup</h2><p class="note">Progress is saved in this browser. Download a backup to keep it safe or move it to another device.</p>' +
-      '<div class="backup"><button class="ghost" data-action="export">Download backup</button>' +
-      '<label class="ghost" style="text-align:center;cursor:pointer">Restore backup<input type="file" accept="application/json,.json" hidden data-input="import"></label></div>'
-    );
-  }
-
   function page(L) {
     var g = store.state.goal, month = s.month();
     return (
@@ -138,7 +130,7 @@ TT.views.rewards = (function () {
       goalBar("Today", s.today(), g) +
       goalBar("This week", s.week(), g * 7) +
       goalBar("This month", month, s.monthGoal()) +
-      streaks() + challenges() + mastery() + avatars() + testTotals() + levels(L, month) + badges() + backup()
+      streaks() + challenges() + mastery() + avatars() + testTotals() + levels(L, month) + badges()
     );
   }
 

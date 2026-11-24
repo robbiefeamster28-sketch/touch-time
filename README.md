@@ -9,7 +9,14 @@ No build step, no server code, no dependencies. It's plain HTML, CSS and JavaScr
 - **On your computer:** open `index.html` in a browser.
 - **Online with GitHub Pages:** push this repo to GitHub, then go to **Settings → Pages → Source** and choose **GitHub Actions**. The workflow in `.github/workflows/pages.yml` publishes the app on every push to `main`, at `https://<your-username>.github.io/<repo-name>/`.
 
-Progress is saved in the browser you use. To move it to another device, go to **Rewards → Backup → Download backup**, then use **Restore backup** on the other device.
+## Player accounts
+
+Each player creates an account with a name and an optional 4-digit PIN. Several players can share one device, and each keeps their own time, test scores, favorites and practices.
+
+- **On claude.ai** (the published preview), accounts and progress are also saved to the visitor's online claude.ai storage, so they follow them to any device where they sign in to claude.ai.
+- **Everywhere else** (GitHub Pages, opening the file), accounts are saved in that browser. To move progress to another device, use **Account → Download backup**, then **Restore backup** on the other device.
+
+The PIN only keeps people on a shared device out of each other's account. It isn't strong security.
 
 ## Project layout
 
@@ -23,7 +30,8 @@ js/data/                The content: edit these to add or change things
   rewards.js            Topics, daily goal, levels, badges, avatars, medals
 js/core/
   util.js               Helpers: time formatting, dates, toast messages
-  store.js              Saving and loading progress, backup and restore
+  store.js              Player accounts, saving progress, backup and restore
+  cloud.js              Online saving when running on claude.ai
   stats.js              Totals, levels, streaks, medals, practice of the day
   demo.js               The animated pitch diagram (or a video)
   timer.js              Full-screen countdown, pause, rest breaks, sounds
@@ -33,6 +41,7 @@ js/views/               One file per page; each returns HTML
   drills.js             Drills list and drill page
   tests.js              Tests list, test page, score chart
   rewards.js            Rewards page
+  account.js            Sign-in, new player, PIN, account settings
 js/sessions.js          Doing a drill, running a practice, taking a test
 js/app.js               Connects it all: page state, drawing, button actions
 videos/                 Optional drill videos (see videos/README.md)
