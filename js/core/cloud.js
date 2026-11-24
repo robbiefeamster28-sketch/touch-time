@@ -99,6 +99,7 @@ TT.cloud = (function () {
   store.on(function (kind, extra) {
     if (!db) return;
     var cur = store.current();
+    if (cur.guest) cur = null; // guest progress stays on this device
     if (kind === "progress" && cur) dirtyPlayers[cur.id] = true;
     if (kind === "players" && cur) { dirtyList = true; dirtyPlayers[cur.id] = true; }
     if (kind === "deleted") { dirtyList = true; dirtyPlayers[extra] = true; }

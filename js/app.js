@@ -31,31 +31,28 @@ window.TT = window.TT || {};
   }
 
   function page() {
-    if (ui.account) return V.account.page();
+    if (ui.pinFor) return V.account.pinEntry(ui);
+    if (ui.account) return store.isGuest() ? V.account.signIn(ui) : V.account.page();
     if (ui.builder) return V.practices.builder(ui);
     if (ui.test) return V.tests.detail(ui);
     if (ui.drill) return V.drills.detail(ui);
     if (ui.practice && V.practices.find(ui.practice)) return V.practices.detail(ui);
     ui.practice = null;
-    var c = V.common;
-    var body = {
-      practices: V.practices.list,
+    return {
+      practices: function () { return V.common.today() + V.practices.list(ui); },
       drills: V.drills.list,
       tests: V.tests.list,
-      rewards: function () { return V.rewards.page(s.level()); }
+      rewards: function () { return V.common.levelBar() + V.rewards.page(s.level()); }
     }[ui.view](ui);
-    return c.statRow() + c.tabs(ui.view) + body;
+  }
+
+  // Which bottom tab to highlight: none while on account screens.
+  function activeTab() {
+    return ui.account || ui.pinFor ? "" : ui.view;
   }
 
   function render() {
-    var app = u.$("app");
-    if (!store.current()) {
-      app.innerHTML = ui.pinFor ? V.account.pinEntry(ui) : V.account.signIn(ui);
-      var first = u.$(ui.pinFor ? "pinin" : "pname");
-      if (first && ui.pinFor) first.focus();
-      return;
-    }
-    app.innerHTML = V.common.header(s.level()) + page();
+    u.$("app").innerHTML = V.common.topbar() + '<div class="page">' + page() + "</div>" + V.common.tabs(activeTab());
   }
 
   function top() {
@@ -68,7 +65,13 @@ window.TT = window.TT || {};
   // ---- button actions: data-action="name" plus data-id / data-value / data-index ----
 
   var actions = {
-    tab: function (el) { ui.view = el.dataset.value; ui.query = ""; render(); },
+    tab: function (el) {
+      ui.drill = ui.test = ui.practice = ui.builder = ui.pinFor = null;
+      ui.account = false;
+      ui.view = el.dataset.value;
+      ui.query = "";
+      top();
+    },
     topic: function (el) { ui.topic = el.dataset.value; render(); },
     "test-topic": function (el) { ui.testTopic = el.dataset.value; render(); },
     "level-filter": function (el) { ui.levelFilter = el.dataset.value; render(); },
@@ -150,7 +153,7 @@ window.TT = window.TT || {};
       resetUi();
       top();
     },
-    "cancel-pin": function () { ui.pinFor = null; top(); },
+    "cancel-pin": function () { ui.pinFor = null; ui.account = true; top(); },
     "open-account": function () { ui.account = true; top(); },
     "close-account": function () { ui.account = false; top(); },
     "sign-out": function () { store.signOut(); resetUi(); top(); },
@@ -267,7 +270,7 @@ window.TT = window.TT || {};
     if (ui.account && (st === "error" || was === "error")) render();
   });
   TT.cloud.start(function () {
-    if (store.current() && !store.findPlayer(store.current().id)) store.signOut();
+    if (!store.isGuest() && !store.findPlayer(store.current().id)) store.signOut();
     render();
   });
 

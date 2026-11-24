@@ -29,12 +29,16 @@ TT.views.practices = (function () {
   }
 
   function list() {
-    var st = store.state, today = s.today(), favs = st.favs.filter(s.drill);
+    var favs = store.state.favs.filter(s.drill), pod = s.practiceOfTheDay();
     return (
-      '<p class="note">' + (today >= st.goal * 60 ? "Daily goal reached. 🎉" : u.fmt(st.goal * 60 - today) + " left to hit today’s goal.") + "</p>" +
-      card(s.practiceOfTheDay(), "Practice of the day") +
-      '<button class="go slim" data-action="new-practice">+ Build your own practice</button>' +
-      (favs.length > 1 ? '<button class="ghost wide" data-action="practice-from-favs">Make a practice from my ' + favs.length + " favorites</button>" : "") +
+      '<button class="feature" data-action="open-practice" data-id="' + esc(pod.id) + '">' +
+      '<span class="eyebrow">Practice of the day</span>' +
+      '<span class="feature-name">' + pod.emoji + " " + esc(pod.name) + "</span>" +
+      '<span class="feature-desc">' + esc(pod.description) + "</span>" +
+      '<span class="feature-go">' + drillsOf(pod).length + " drills · Start ›</span></button>" +
+      '<div class="actions-row"><button class="go slim" data-action="new-practice">+ Build your own</button>' +
+      (favs.length > 1 ? '<button class="ghost" data-action="practice-from-favs">From my ' + favs.length + " favorites</button>" : "") + "</div>" +
+      '<h2 class="sec">Practices</h2>' +
       all().map(function (p) { return card(p, p.mine ? "My practice" : ""); }).join("")
     );
   }

@@ -1,5 +1,8 @@
 // Player accounts and saved progress.
 //
+// Nobody has to sign in: until they do, people train as a guest, saved in
+// this browser. Creating an account moves the guest's progress into it.
+//
 // Each player has their own progress. It is always saved in this browser
 // (localStorage), and js/core/cloud.js also saves it to the viewer's online
 // account when one is available, so it follows them to other devices.
@@ -21,8 +24,9 @@ TT.store = (function () {
     prefs: "touchtime.prefs"
   };
 
+  var GUEST = { id: "guest", name: "Guest", guest: true };
   var players = [];
-  var current = null; // the signed-in player object, or null
+  var current = GUEST; // the signed-in player, or GUEST
 
   // The signed-in player's progress. Other modules keep a reference to this
   // object, so it is always updated in place, never replaced.
@@ -124,11 +128,20 @@ TT.store = (function () {
     write(KEYS.players, players);
   }
 
+  // Loads a player's progress, or the guest's when p is null.
   function loadPlayer(p) {
     resetState();
-    current = p;
-    if (!p) return;
-    merge(read(KEYS.player + p.id, {}));
+    current = p || GUEST;
+    merge(read(KEYS.player + current.id, {}));
+    // Progress from before accounts existed belongs to whoever opens the app first.
+    if (current.guest) {
+      var old = legacyData();
+      if (old) {
+        merge(old);
+        write(KEYS.migrated, true);
+        write(KEYS.player + GUEST.id, snapshot());
+      }
+    }
   }
 
   function legacyData() {
@@ -143,15 +156,15 @@ TT.store = (function () {
   function createPlayer(name, pin) {
     var id = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     var p = { id: id, name: name.trim().slice(0, 24), pin: pin ? hashPin(id, pin) : "", created: Date.now(), updated: Date.now() };
+    var fromGuest = current.guest ? snapshot() : null;
     players.push(p);
     savePlayers();
     write(KEYS.current, id);
     loadPlayer(p);
-    // Progress from before accounts existed goes to the first account made.
-    var old = legacyData();
-    if (old) {
-      merge(old);
-      write(KEYS.migrated, true);
+    // What they did as a guest moves into the new account.
+    if (fromGuest) {
+      merge(JSON.parse(JSON.stringify(fromGuest)));
+      remove(KEYS.player + GUEST.id);
     }
     save();
     emit("players");
@@ -189,7 +202,7 @@ TT.store = (function () {
   }
 
   function renamePlayer(name) {
-    if (!current || !name.trim()) return;
+    if (!current || current.guest || !name.trim()) return;
     current.name = name.trim().slice(0, 24);
     current.updated = Date.now();
     savePlayers();
@@ -197,7 +210,7 @@ TT.store = (function () {
   }
 
   function setPin(pin) {
-    if (!current) return;
+    if (!current || current.guest) return;
     current.pin = pin ? hashPin(current.id, pin) : "";
     current.updated = Date.now();
     savePlayers();
@@ -205,7 +218,7 @@ TT.store = (function () {
   }
 
   function deletePlayer() {
-    if (!current) return;
+    if (!current || current.guest) return;
     var id = current.id;
     // Kept as a marker so online sync doesn't bring the player back.
     current.deleted = true;
@@ -221,7 +234,6 @@ TT.store = (function () {
   // ---- saving ----
 
   function save() {
-    if (!current) return;
     write(KEYS.player + current.id, snapshot());
     emit("progress");
   }
@@ -316,13 +328,13 @@ TT.store = (function () {
 
   // Saved progress for any player, signed in or not.
   function playerData(id) {
-    if (current && current.id === id) return snapshot();
+    if (current.id === id) return snapshot();
     return read(KEYS.player + id, {});
   }
 
   // Merges online progress into a player's saved progress.
   function mergePlayerData(id, data) {
-    if (current && current.id === id) {
+    if (current.id === id) {
       merge(data);
       write(KEYS.player + id, snapshot());
       return;
@@ -350,6 +362,7 @@ TT.store = (function () {
     players: activePlayers,
     allPlayers: function () { return players; },
     current: function () { return current; },
+    isGuest: function () { return !!current.guest; },
     findPlayer: findPlayer,
     hasPin: hasPin,
     createPlayer: createPlayer,

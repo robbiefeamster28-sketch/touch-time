@@ -21,33 +21,31 @@ TT.views.account = (function () {
     return '<p class="note sync sync-' + s + '" aria-live="polite">' + syncText(s) + "</p>";
   }
 
-  function brand() {
-    return '<header><h1>Touch Time</h1></header>';
-  }
-
-  // Shown whenever nobody is signed in on this device.
+  // Sign in / create account, opened from the top-right button.
   function signIn(ui) {
     var list = store.players();
     var loading = TT.cloud.status() === "connecting";
+    var hasGuestProgress = store.state.log.length || store.state.results.length || store.state.favs.length || store.state.mine.length;
     return (
-      brand() +
+      '<button class="back" data-action="close-account">‹ Back</button>' +
       '<div class="detail">' +
       (list.length
-        ? "<h2>Who’s playing?</h2>" +
+        ? "<h2>Sign in</h2><p class=\"note\">Pick your player.</p>" +
           list.map(function (p) {
             return '<button class="drill mb" data-action="choose-player" data-id="' + p.id + '">' +
               '<span class="em">' + esc((p.name || "?").charAt(0).toUpperCase()) + "</span>" +
               "<span><h3>" + esc(p.name) + "</h3><small>" + (p.pin ? "🔒 PIN protected" : "Tap to play") + "</small></span></button>";
           }).join("") +
-          '<h2 class="sec">New player</h2>'
-        : "<h2>Welcome!</h2><p>Create your player account to start training. Your time, test scores, favorites and practices are saved to it.</p>") +
+          '<h2 class="sec">Create an account</h2>'
+        : "<h2>Create an account</h2><p>Save your time, test scores, favorites and practices to your own player account.</p>") +
+      (hasGuestProgress ? '<p class="note">What you’ve done as a guest moves into your new account.</p>' : "") +
       (loading ? '<p class="note">Loading your players…</p>' : "") +
       '<form class="account-form" data-form="create-player">' +
       '<label class="lbl" for="pname">Player name</label>' +
       '<input class="field" id="pname" name="name" maxlength="24" autocomplete="nickname" placeholder="e.g. Sam" required value="' + esc(ui.draftName || "") + '">' +
       '<label class="lbl" for="ppin">4-digit PIN <span class="muted">(optional)</span></label>' +
       '<input class="field" id="ppin" name="pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="Leave blank for no PIN">' +
-      '<button class="go" type="submit">Create player</button>' +
+      '<button class="go" type="submit">Create account</button>' +
       "</form>" +
       '<p class="note small">A PIN stops others on a shared device from opening your account.</p>' +
       syncNote() +
@@ -58,7 +56,6 @@ TT.views.account = (function () {
   function pinEntry(ui) {
     var p = store.findPlayer(ui.pinFor);
     return (
-      brand() +
       '<button class="back" data-action="cancel-pin">‹ Back</button>' +
       '<div class="detail"><h2>Hi ' + esc(p.name) + "!</h2><p>Enter your PIN.</p>" +
       '<form data-form="pin">' +
@@ -85,7 +82,7 @@ TT.views.account = (function () {
       '<h3 class="need">Backup</h3><p class="note">Download your progress as a file, or restore one.</p>' +
       '<div class="backup"><button class="ghost" data-action="export">Download backup</button>' +
       '<label class="ghost" style="text-align:center;cursor:pointer">Restore backup<input type="file" accept="application/json,.json" hidden data-input="import"></label></div>' +
-      '<button class="go" style="margin-top:20px" data-action="sign-out">Switch player</button>' +
+      '<button class="go" style="margin-top:20px" data-action="sign-out">Sign out</button>' +
       '<button class="ghost wide danger" style="margin-top:12px" data-action="delete-player">Delete this account</button>' +
       "</div>"
     );
