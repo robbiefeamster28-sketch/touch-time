@@ -6,16 +6,19 @@ TT.views.account = (function () {
   var store = TT.store, u = TT.util;
   var esc = u.esc;
 
-  function syncNote() {
-    var s = TT.cloud.status();
-    var text = {
+  function syncText(s) {
+    return {
       local: "Progress is saved on this device.",
       connecting: "Connecting to your account…",
       saving: "☁️ Saving to your account…",
       synced: "☁️ Saved to your account. Sign in on any device to pick up where you left off.",
       error: "Couldn’t reach your account. Progress is saved on this device and will try again."
     }[s];
-    return '<p class="note sync sync-' + s + '">' + text + "</p>";
+  }
+
+  function syncNote() {
+    var s = TT.cloud.status();
+    return '<p class="note sync sync-' + s + '" aria-live="polite">' + syncText(s) + "</p>";
   }
 
   function brand() {
@@ -88,5 +91,5 @@ TT.views.account = (function () {
     );
   }
 
-  return { signIn: signIn, pinEntry: pinEntry, page: page };
+  return { signIn: signIn, pinEntry: pinEntry, page: page, syncText: syncText };
 })();

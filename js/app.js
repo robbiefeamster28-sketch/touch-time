@@ -101,8 +101,8 @@ window.TT = window.TT || {};
       top();
     },
     "edit-practice": function () { ui.builder = JSON.parse(JSON.stringify(V.practices.find(ui.practice))); top(); },
-    "delete-practice": function () {
-      if (!window.confirm("Delete this practice?")) return;
+    "delete-practice": function (el) {
+      if (!u.confirmTap(el, "Tap again to delete")) return;
       store.deletePractice(ui.practice);
       ui.practice = null;
       top();
@@ -137,12 +137,10 @@ window.TT = window.TT || {};
       render();
     },
     export: function () {
-      var blob = new Blob([store.exportJson()], { type: "application/json" });
-      var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "touch-time-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-      a.click();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      var name = "touch-time-" + store.current().name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + "-" + new Date().toISOString().slice(0, 10) + ".json";
+      u.saveFile(name, store.exportJson()).catch(function (e) {
+        if (!e || e.code !== "declined") u.toast("Couldn’t save the backup here.");
+      });
     },
 
     "choose-player": function (el) {
@@ -158,9 +156,8 @@ window.TT = window.TT || {};
     "sign-out": function () { store.signOut(); resetUi(); top(); },
     "remove-pin": function () { store.setPin(""); render(); u.toast("PIN removed"); },
     "sync-retry": function () { TT.cloud.retry(); },
-    "delete-player": function () {
-      var name = store.current().name;
-      if (!window.confirm("Delete " + name + "’s account and all their progress? This can’t be undone.")) return;
+    "delete-player": function (el) {
+      if (!u.confirmTap(el, "Tap again to delete " + store.current().name + " and all their progress")) return;
       store.deletePlayer();
       resetUi();
       top();
@@ -253,10 +250,21 @@ window.TT = window.TT || {};
     });
   });
 
-  // Redraw when online saving changes state (unless a timer is on screen).
-  TT.cloud.onStatus(function () {
-    var typing = document.activeElement && /INPUT/.test(document.activeElement.tagName);
-    if (!typing) render();
+  // Online saving changed state: update the status text in place. A full
+  // redraw here could swallow a tap that lands at the same moment.
+  var lastStatus = TT.cloud.status();
+  TT.cloud.onStatus(function (st) {
+    var was = lastStatus;
+    lastStatus = st;
+    document.querySelectorAll(".sync").forEach(function (el) {
+      el.textContent = V.account.syncText(st);
+      el.className = "note sync sync-" + st;
+    });
+    document.querySelectorAll(".cloud-ind").forEach(function (el) {
+      el.textContent = st === "synced" || st === "saving" ? " ☁️" : "";
+    });
+    // The account page shows a "Try again" button only while there's an error.
+    if (ui.account && (st === "error" || was === "error")) render();
   });
   TT.cloud.start(function () {
     if (store.current() && !store.findPlayer(store.current().id)) store.signOut();

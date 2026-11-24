@@ -73,7 +73,44 @@ TT.util = (function () {
     }, 3200);
   }
 
+  // Two-tap confirmation built into the button itself (pop-up dialogs are
+  // blocked on some hosts). The first tap relabels the button; a second tap
+  // within 4 seconds returns true.
+  function confirmTap(button, question) {
+    if (button.dataset.armed) return true;
+    var label = button.textContent;
+    button.dataset.armed = "1";
+    button.textContent = question;
+    button.classList.add("armed");
+    setTimeout(function () {
+      if (!button.isConnected) return;
+      delete button.dataset.armed;
+      button.textContent = label;
+      button.classList.remove("armed");
+    }, 4000);
+    return false;
+  }
+
+  // Saves a text file. On claude.ai the viewer is asked to confirm the save;
+  // elsewhere it downloads straight away.
+  function saveFile(filename, text) {
+    var c = window.claude;
+    var viaClaude = c && c.use ? c.use("downloads") : Promise.resolve(null);
+    return viaClaude.then(function (d) {
+      if (d) return d.save({ filename: filename, data: text });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+  }
+
   return {
+    confirmTap: confirmTap,
+    saveFile: saveFile,
     $: $,
     esc: esc,
     fmt: fmt,

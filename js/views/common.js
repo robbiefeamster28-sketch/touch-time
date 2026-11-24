@@ -14,7 +14,7 @@ TT.views.common = (function () {
       "<header><h1>Touch Time</h1>" +
       '<button class="acct" data-action="open-account" aria-label="Account: ' + esc(p.name) + '">' +
       TT.AVATARS[store.state.avatar].emoji + " " + esc(p.name) +
-      (cloud === "synced" || cloud === "saving" ? ' <span aria-hidden="true">☁️</span>' : "") + "</button></header>" +
+      '<span class="cloud-ind" aria-hidden="true">' + (cloud === "synced" || cloud === "saving" ? " ☁️" : "") + "</span></button></header>" +
       '<p class="lvl">' + (sk ? "🔥 " + sk + "-day streak · " : "") + "Level " + L.index + " this month · <b>" + L.name + "</b></p>" +
       '<div class="xp" aria-label="Progress to next level"><i style="width:' + L.pct + '%"></i></div>'
     );
