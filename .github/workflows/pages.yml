@@ -24,9 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/configure-pages@v6
+      # Only the web app (www/), not the Android and iPhone projects.
+      - run: node scripts/build-www.js
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: .
+          path: www
 
   # Publish the package once the build job has finished saving it.
   deploy:

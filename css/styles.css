@@ -2,6 +2,10 @@
    Layout: phone-app shell. Top bar (brand + account) and a fixed bottom tab
    bar; content in one centred column. Team-kit colours: royal blue for
    navigation and progress, coral for "go" actions, gold for medals. */
+/* Fonts ship with the app (fonts/) so it works offline. */
+@font-face { font-family: "Big Shoulders Display"; src: url("../fonts/big-shoulders-display.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("../fonts/dm-sans.woff2") format("woff2"); font-weight: 100 1000; font-display: swap; }
+
 :root {
   --bg: #eef1f7;
   --surface: #ffffff;

@@ -91,9 +91,23 @@ TT.util = (function () {
     return false;
   }
 
-  // Saves a text file. On claude.ai the viewer is asked to confirm the save;
-  // elsewhere it downloads straight away.
+  // Saves a text file.
+  // - Android/iPhone app: writes it, then opens the share sheet (save to Files, Drive, email…).
+  // - claude.ai: the viewer is asked to confirm the save.
+  // - Any other browser: downloads straight away.
   function saveFile(filename, text) {
+    var cap = window.Capacitor;
+    if (cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins.Filesystem && cap.Plugins.Share) {
+      return cap.Plugins.Filesystem.writeFile({ path: filename, data: text, directory: "CACHE", encoding: "utf8" })
+        .then(function (r) {
+          return cap.Plugins.Share.share({ title: "Touch Time backup", files: [r.uri] });
+        })
+        .catch(function (e) {
+          // Closing the share sheet isn't an error.
+          if (e && /cancel/i.test(e.message || "")) throw { code: "declined" };
+          throw e;
+        });
+    }
     var c = window.claude;
     var viaClaude = c && c.use ? c.use("downloads") : Promise.resolve(null);
     return viaClaude.then(function (d) {

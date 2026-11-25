@@ -1,0 +1,18 @@
+{
+  "appId": "io.github.robbiefeamster28.touchtime",
+  "appName": "Touch Time",
+  "webDir": "www",
+  "backgroundColor": "#1f4fd8",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "launchAutoHide": true,
+      "backgroundColor": "#1f4fd8",
+      "showSpinner": false
+    },
+    "SystemBars": {
+      "insetsHandling": "native",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

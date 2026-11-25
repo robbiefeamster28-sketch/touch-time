@@ -1,0 +1,37 @@
+# Builds a test version of the Android app on every push to main.
+# Download it from the run's "Artifacts" section, unzip, and open the .apk
+# on an Android phone (allow "install unknown apps" when asked).
+name: Android test build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build:www
+      - run: npx cap sync android
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v6
+        with:
+          name: touch-time-android-test
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
