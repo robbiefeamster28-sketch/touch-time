@@ -17,6 +17,7 @@ function seed() {
   const now = Date.now(), D = 864e5, log = [], ids = ["toe", "dr_box", "dr_drag", "n_vs", "p1_b", "jl1", "s_vb_r", "dr_v"];
   for (let day = 6; day >= 1; day--) for (let k = 0; k < 6; k++) log.push({ t: now - day * D - k * 6e5, s: 60, d: ids[(day + k) % 8] });
   for (let k = 0; k < 19; k++) log.push({ t: now - k * 6e4, s: 60, d: ids[k % 8] });
+  sessionStorage.setItem("touchtime.intro", "1"); // skip the opening animation
   localStorage.setItem("touchtime.players", JSON.stringify([{ id: "pdemo", name: "Alex", pin: "", created: now, updated: now }]));
   localStorage.setItem("touchtime.current", JSON.stringify("pdemo"));
   localStorage.setItem("touchtime.player.pdemo", JSON.stringify({

@@ -310,3 +310,33 @@ video.pitch { background: #000; max-height: 60vh; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 .account-form + .note { margin-top: 10px; }
+
+/* ---------- opening animation (js/core/intro.js) ---------- */
+.intro {
+  position: fixed; inset: 0; z-index: 100; display: none; place-items: center;
+  pointer-events: none; /* never blocks the app underneath */
+  background: repeating-linear-gradient(115deg, var(--hero) 0 60px, color-mix(in srgb, var(--hero) 88%, #fff) 60px 120px);
+  background-size: 400px 400px;
+}
+.intro.play { display: grid; animation: intro-stripes 2.3s linear, intro-out 0.55s cubic-bezier(0.7, 0, 0.84, 0) 1.65s forwards; }
+.intro-name {
+  display: flex; flex-direction: column; align-items: center;
+  color: #fff; font: 800 clamp(96px, 34vw, 230px)/0.84 var(--display); letter-spacing: 0.01em;
+}
+.intro-word { display: flex; overflow: hidden; padding: 0.03em 0.02em; }
+.intro-word i { display: block; font-style: normal; transform: translateY(140%); }
+.intro.play .intro-word i { animation: intro-letter 0.55s cubic-bezier(0.2, 0.9, 0.25, 1.15) forwards; }
+.intro.play .intro-word:first-child i:nth-child(1) { animation-delay: 0.15s; }
+.intro.play .intro-word:first-child i:nth-child(2) { animation-delay: 0.2s; }
+.intro.play .intro-word:first-child i:nth-child(3) { animation-delay: 0.25s; }
+.intro.play .intro-word:first-child i:nth-child(4) { animation-delay: 0.3s; }
+.intro.play .intro-word:first-child i:nth-child(5) { animation-delay: 0.35s; }
+.intro.play .intro-word:last-child i:nth-child(1) { animation-delay: 0.45s; }
+.intro.play .intro-word:last-child i:nth-child(2) { animation-delay: 0.5s; }
+.intro.play .intro-word:last-child i:nth-child(3) { animation-delay: 0.55s; }
+.intro.play .intro-word:last-child i:nth-child(4) { animation-delay: 0.6s; }
+.intro.play .intro-name { animation: intro-punch 0.35s ease-out 1.05s; }
+@keyframes intro-letter { to { transform: translateY(0); } }
+@keyframes intro-punch { 50% { transform: scale(1.06); } }
+@keyframes intro-stripes { to { background-position: 400px 0; } }
+@keyframes intro-out { to { transform: translateY(-100%); } }

@@ -6,10 +6,22 @@
   <meta name="theme-color" content="#1f4fd8">
   <meta name="description" content="Soccer drills, practices and skill tests with goals, streaks and badges.">
   <title>Touch Time – Soccer Drills</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preload" href="fonts/big-shoulders-display.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <!-- Opening animation: the name only. Removed by js/core/intro.js. -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-name">
+      <span class="intro-word"><i>T</i><i>O</i><i>U</i><i>C</i><i>H</i></span>
+      <span class="intro-word"><i>T</i><i>I</i><i>M</i><i>E</i></span>
+    </div>
+  </div>
+  <script src="js/core/intro.js"></script>
+
   <main id="app"></main>
   <div class="timer" id="timer" role="dialog" aria-label="Drill timer"></div>
   <div class="toast" id="toast" role="status"></div>

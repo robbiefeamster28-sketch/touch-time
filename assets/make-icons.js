@@ -54,9 +54,10 @@ const files = {
   // Android adaptive icon: the mark sits in the centre safe zone, background separate.
   "icon-foreground.png": [1024, 1024, mark(512, 512, 560)],
   "icon-background.png": [1024, 1024, stripes(1024, 1024, BLUE, "rgba(255,255,255,.07)")],
-  // Launch screens.
-  "splash.png": [2732, 2732, stripes(2732, 2732, BLUE, "rgba(255,255,255,.06)") + mark(1366, 1366, 700)],
-  "splash-dark.png": [2732, 2732, stripes(2732, 2732, NAVY, "rgba(123,155,255,.08)") + mark(1366, 1366, 700)]
+  // Launch screens: plain kit stripes, so they flow straight into the
+  // "TOUCH TIME" opening animation (js/core/intro.js).
+  "splash.png": [2732, 2732, stripes(2732, 2732, BLUE, "rgba(255,255,255,.06)")],
+  "splash-dark.png": [2732, 2732, stripes(2732, 2732, NAVY, "rgba(123,155,255,.08)")]
 };
 
 (async () => {
