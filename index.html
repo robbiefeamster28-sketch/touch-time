@@ -13,9 +13,11 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <!-- Opening animation: field lines draw in, the ball rolls in and the
-       ring sweeps round it, then the name rises. Run by js/core/intro.js. -->
+  <!-- Opening animation: the field fades in, the ball rolls in and the
+       ring sweeps round it, the name rises, then the screen splits open
+       along the halfway line. Run by js/core/intro.js. -->
   <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-scene">
     <svg class="intro-field" id="intro-field"></svg>
     <div class="intro-center">
       <div class="intro-logo">
@@ -29,6 +31,7 @@
         <span class="intro-word"><i>T</i><i>O</i><i>U</i><i>C</i><i>H</i></span>
         <span class="intro-word"><i>T</i><i>I</i><i>M</i><i>E</i></span>
       </div>
+    </div>
     </div>
   </div>
   <script src="js/core/intro.js"></script>

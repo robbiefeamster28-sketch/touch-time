@@ -1,8 +1,8 @@
 // Opening animation, about 3 seconds:
-//   1. soccer-field lines draw themselves around the edge of the screen,
-//   2. the ball rolls in, spinning, and the coral ring sweeps round it,
-//   3. "TOUCH TIME" rises in letter by letter over the field,
-//   4. everything slides up to reveal the app.
+//   1. the soccer field fades in around the edge of the screen,
+//   2. the ball rolls in, spinning, to the centre spot and the coral ring sweeps round it,
+//   3. "TOUCH TIME" rises in letter by letter on the pitch,
+//   4. the screen splits along the halfway line: top half up, bottom half down.
 // Plays once per visit (each app launch), never blocks taps, and is skipped
 // when the device asks for reduced motion.
 (function () {
@@ -19,7 +19,18 @@
 
   el.classList.add("play");
   drawField(document.getElementById("intro-field"));
-  setTimeout(function () { el.remove(); }, 3000);
+
+  // Two identical copies of the scene, one showing the top half and one the
+  // bottom half. They animate together, so they look like one screen until
+  // they part at the halfway line.
+  var top = el.querySelector(".intro-scene");
+  var bottom = top.cloneNode(true);
+  bottom.querySelectorAll("[id]").forEach(function (n) { n.removeAttribute("id"); });
+  top.classList.add("half-top");
+  bottom.classList.add("half-bottom");
+  el.appendChild(bottom);
+
+  setTimeout(function () { el.remove(); }, 3100);
 
   // A pitch that fits the screen: tall on phones, wide on computers.
   function drawField(svg) {
@@ -70,6 +81,6 @@
     arc(x0 + W, y0 + H - k, x0 + W - k, y0 + H, k, 0);
 
     svg.setAttribute("viewBox", "0 0 " + w + " " + h);
-    svg.innerHTML = parts.join("").replace(/<(line|rect|circle|path) /g, '<$1 pathLength="1" ');
+    svg.innerHTML = parts.join("");
   }
 })();

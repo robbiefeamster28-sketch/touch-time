@@ -312,22 +312,30 @@ video.pitch { background: #000; max-height: 60vh; }
 .account-form + .note { margin-top: 10px; }
 
 /* ---------- opening animation (js/core/intro.js) ----------
-   0.0s field lines draw · 0.15s ball rolls in · 0.85s ring sweeps
-   1.0s TOUCH rises · 1.25s TIME rises · 1.8s punch · 2.4s slide away */
+   0.05s field fades in · 0.15s ball rolls in · 0.85s ring sweeps
+   1.0s TOUCH rises · 1.25s TIME rises · 1.8s punch · 2.4s splits open at the halfway line */
 .intro {
-  position: fixed; inset: 0; z-index: 100; display: none; place-items: center; overflow: hidden;
+  position: fixed; inset: 0; z-index: 100; display: none; overflow: hidden;
   pointer-events: none; /* never blocks the app underneath */
+}
+.intro.play { display: block; }
+/* One full-screen scene; the script makes a second copy so the two halves can part. */
+.intro-scene {
+  position: absolute; inset: 0;
   background: repeating-linear-gradient(115deg, var(--hero) 0 60px, color-mix(in srgb, var(--hero) 88%, #fff) 60px 120px);
   background-size: 400px 400px;
 }
-.intro.play { display: grid; animation: intro-stripes 3s linear, intro-out 0.55s cubic-bezier(0.7, 0, 0.84, 0) 2.4s forwards; }
+.intro.play .intro-scene { animation: intro-stripes 3.1s linear; }
+.intro .half-top { clip-path: inset(0 0 50% 0); }
+.intro .half-bottom { clip-path: inset(50% 0 0 0); }
+.intro.play .half-top { animation: intro-stripes 3.1s linear, intro-split-up 0.6s cubic-bezier(0.65, 0, 0.35, 1) 2.4s forwards; }
+.intro.play .half-bottom { animation: intro-stripes 3.1s linear, intro-split-down 0.6s cubic-bezier(0.65, 0, 0.35, 1) 2.4s forwards; }
 
-/* The pitch, behind everything. */
-.intro-field { position: absolute; inset: 0; width: 100%; height: 100%; }
-.intro-field * { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; }
-.intro-field .spot { fill: rgba(255, 255, 255, 0.55); stroke: none; opacity: 0; }
-.intro.play .intro-field * { animation: intro-draw 0.95s cubic-bezier(0.45, 0, 0.2, 1) 0.05s forwards; }
-.intro.play .intro-field .spot { animation: intro-fade 0.3s ease-out 0.8s forwards; }
+/* The pitch, behind everything: fades in as one piece. */
+.intro-field { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transform: scale(1.04); }
+.intro-field * { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 2.5; }
+.intro-field .spot { fill: rgba(255, 255, 255, 0.55); stroke: none; }
+.intro.play .intro-field { animation: intro-field-in 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) 0.05s forwards; }
 
 /* Logo and name sit on top of the pitch. */
 /* Kick-off: the ball sits on the centre spot, the name on the pitch below it. */
@@ -370,12 +378,12 @@ video.pitch { background: #000; max-height: 60vh; }
 .intro.play .intro-word:last-child i:nth-child(3) { animation-delay: 1.35s; }
 .intro.play .intro-word:last-child i:nth-child(4) { animation-delay: 1.4s; }
 
-@keyframes intro-draw { to { stroke-dashoffset: 0; } }
-@keyframes intro-fade { to { opacity: 1; } }
+@keyframes intro-field-in { to { opacity: 1; transform: scale(1); } }
 @keyframes intro-roll { to { transform: translateX(0); } }
 @keyframes intro-spin { to { transform: rotate(0deg); } }
 @keyframes intro-ring { to { stroke-dashoffset: 0.25; } }
 @keyframes intro-letter { to { transform: translateY(0); } }
 @keyframes intro-punch { 50% { transform: scale(1.06); } }
 @keyframes intro-stripes { to { background-position: 400px 0; } }
-@keyframes intro-out { to { transform: translateY(-100%); } }
+@keyframes intro-split-up { to { transform: translateY(-50%); } }
+@keyframes intro-split-down { to { transform: translateY(50%); } }
