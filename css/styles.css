@@ -322,6 +322,7 @@ video.pitch { background: #000; max-height: 60vh; }
 /* One full-screen scene; the script makes a second copy so the two halves can part. */
 .intro-scene {
   position: absolute; inset: 0;
+  background: var(--hero); /* older browsers without color-mix() get a plain background */
   background: repeating-linear-gradient(115deg, var(--hero) 0 60px, color-mix(in srgb, var(--hero) 88%, #fff) 60px 120px);
   background-size: 400px 400px;
 }

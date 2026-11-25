@@ -4,12 +4,22 @@
 //   3. "TOUCH TIME" rises in letter by letter on the pitch,
 //   4. the screen splits along the halfway line: top half up, bottom half down.
 // Plays once per visit (each app launch), never blocks taps, and is skipped
-// when the device asks for reduced motion.
+// when the device asks for reduced motion. Add #intro to the address to replay it.
 (function () {
+  // Typing #intro on a page that's already open: reload so it plays.
+  window.addEventListener("hashchange", function () {
+    if (location.hash === "#intro") location.reload();
+  });
+
   var el = document.getElementById("intro");
   if (!el) return;
   var seen = false, reduce = false;
   try { seen = sessionStorage.getItem("touchtime.intro") === "1"; } catch (e) {}
+  // Add #intro to the address to watch it again.
+  if (location.hash === "#intro") {
+    seen = false;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  }
   try { reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
   if (seen || reduce) {
     el.remove();
