@@ -19,7 +19,8 @@ TT.views.account = (function () {
 
   function syncNote() {
     var s = TT.cloud.status();
-    return '<p class="note sync sync-' + s + '" aria-live="polite">' + syncText(s) + "</p>";
+    return '<p class="note sync sync-' + s + '" aria-live="polite">' + syncText(s) + "</p>" +
+      '<p class="hint stats-status">' + esc(TT.analytics.statusText()) + "</p>";
   }
 
   // ---- form pieces ----
