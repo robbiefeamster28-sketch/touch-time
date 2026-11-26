@@ -45,7 +45,7 @@ TT.views.practices = (function () {
 
   function drillRow(d, i, length) {
     return (
-      '<div class="row"><button class="drill" data-action="open-drill" data-id="' + d.id + '">' +
+      '<div class="row"><button class="drill" data-action="open-drill" data-id="' + d.id + '" data-index="' + i + '">' +
       '<span class="em">' + d.emoji + "</span><span><h3>" + (i + 1) + ". " + esc(d.name) + "</h3><small>" + d.level + "</small></span>" +
       '<span class="t">' + u.fmt(length) + "</span></button>" + c.starButton(d) + "</div>"
     );

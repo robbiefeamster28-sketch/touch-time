@@ -48,8 +48,11 @@ TT.sessions = (function () {
   var BREAK = 15; // seconds between drills
   var run = null; // { name, drills, index, seconds, before, done, skipped, last }
 
-  function practice(p, seconds) {
-    run = { name: p.name, drills: p.drills.filter(s.drill), index: 0, seconds: seconds, before: snapshot(), done: 0, skipped: 0, last: null };
+  // from: index of the drill to begin with (0 = the first).
+  function practice(p, seconds, from) {
+    var list = p.drills.filter(s.drill);
+    from = Math.max(0, Math.min(list.length - 1, from || 0));
+    run = { name: p.name, drills: list, index: from, seconds: seconds, before: snapshot(), done: 0, skipped: 0, last: null };
     intro();
   }
 

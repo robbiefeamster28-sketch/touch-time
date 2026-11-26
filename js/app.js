@@ -82,8 +82,21 @@ window.TT = window.TT || {};
     fav: function (el) { store.toggleFav(el.dataset.id); render(); },
     length: function (el) { ui.length = +el.dataset.value; render(); },
 
-    "open-drill": function (el) { ui.drill = el.dataset.id; top(); },
-    "close-drill": function () { ui.drill = null; top(); },
+    // From a practice's list, remember which drill of the practice it is.
+    "open-drill": function (el) {
+      ui.drill = el.dataset.id;
+      ui.practiceIndex = el.dataset.index != null && ui.practice ? +el.dataset.index : null;
+      top();
+    },
+    "close-drill": function () { ui.drill = null; ui.practiceIndex = null; top(); },
+    // Run the practice from this drill to the end, with the breaks.
+    "start-practice-here": function () {
+      var p = V.practices.find(ui.practice), from = ui.practiceIndex;
+      ui.drill = null; // "Return to practice" lands on the practice page
+      ui.practiceIndex = null;
+      render();
+      TT.sessions.practice(p, ui.length, from);
+    },
     "start-drill": function () { TT.sessions.drill(ui.drill, ui.length); },
 
     "open-test": function (el) { ui.test = el.dataset.id; top(); },
@@ -93,7 +106,7 @@ window.TT = window.TT || {};
 
     "open-practice": function (el) { ui.practice = el.dataset.id; top(); },
     "close-practice": function () { ui.practice = null; top(); },
-    "start-practice": function () { TT.sessions.practice(V.practices.find(ui.practice), ui.length); },
+    "start-practice": function () { TT.sessions.practice(V.practices.find(ui.practice), ui.length, 0); },
     "practice-go": function () { TT.sessions.practiceGo(); },
     "practice-skip": function () { TT.sessions.practiceSkip(); },
 
