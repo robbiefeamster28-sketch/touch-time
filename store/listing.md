@@ -48,7 +48,7 @@ STAY MOTIVATED
 FOR FAMILIES AND TEAMS
 • Use it straight away as a guest, or create player accounts
 • Several players can share one phone, each with their own progress and an optional PIN
-• Works offline. No ads, no tracking, no data collected.
+• Works offline. No ads and no tracking: only anonymous usage counts.
 
 ## Keywords (Apple, 100 characters max)
 
@@ -67,14 +67,23 @@ user-generated content shared with others, location sharing, or purchases.
 
 ## Google Play: Data safety form
 
-- Does your app collect or share any of the required user data types? **No**
-- Is all of the user data collected by your app encrypted in transit? **Not applicable** (nothing is collected)
+- Does your app collect or share any of the required user data types? **Yes**
+- Is all of the user data collected by your app encrypted in transit? **Yes**
 - Do you provide a way for users to request that their data is deleted? **Yes**: in the app, Account > Delete this account.
+- Data types: tick only **App activity › App interactions**. For it:
+  - Collected: **Yes**. Shared: **No**.
+  - Processed ephemerally: **No**. Required: **Yes** (users can't turn it off in the app).
+  - Purpose: **Analytics** only.
+- Leave every other type unticked (no personal info, location, device IDs, etc.).
 
 ## Apple: App Privacy ("nutrition label")
 
-- Do you or your third-party partners collect data from this app? **No, we do not collect data from this app.**
-  Result: **Data Not Collected**.
+- Do you or your third-party partners collect data from this app? **Yes**
+- Data type: **Usage Data › Product Interaction** only.
+  - Used for: **Analytics**.
+  - Linked to the user's identity? **No**.
+  - Used for tracking? **No**.
+  Result: **Data Not Linked to You: Usage Data**. No App Tracking Transparency prompt is needed.
 
 ## Apple: App Review notes
 

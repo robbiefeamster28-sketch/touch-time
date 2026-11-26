@@ -33,6 +33,7 @@ TT.sessions = (function () {
       onDone: function () {
         var before = snapshot();
         store.logTime(d.id, seconds);
+        TT.analytics.event("drill-completed");
         doneScreen(before, "✅", "+" + seconds + " sec", d.name + " complete.", "Back to drill");
       }
     });
@@ -77,6 +78,7 @@ TT.sessions = (function () {
   }
 
   function practiceDone() {
+    TT.analytics.event("practice-completed");
     doneScreen(run.before, "🏆", "+" + fmt(run.drills.length * run.seconds), run.name + " complete!", "Done");
     run = null;
   }
@@ -134,6 +136,7 @@ TT.sessions = (function () {
     var medal = s.medalOf(t, n);
     store.addResult(t.id, n);
     store.logTime(t.id, t.seconds);
+    TT.analytics.event("test-taken");
     timer.show(
       '<div class="done"><div style="font-size:64px">' + (medal ? TT.MEDALS[medal].emoji : "💪") + "</div>" +
       '<div class="big">' + n + " " + t.unit + "</div>" +

@@ -192,6 +192,7 @@ window.TT = window.TT || {};
       var taken = store.players().some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
       if (taken) return u.toast("There’s already a player called " + name + ".");
       store.createPlayer(name, pin);
+      TT.analytics.event("account-created");
       ui.draftName = "";
       resetUi();
       top();
@@ -279,4 +280,5 @@ window.TT = window.TT || {};
   });
 
   render();
+  TT.analytics.pageview();
 })();

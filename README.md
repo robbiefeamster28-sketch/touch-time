@@ -18,6 +18,11 @@ screenshots are in [`store/`](store/).
 - `npm install`, then `npm run sync` copies the web app into `www/` and updates `android/` and `ios/`.
 - GitHub builds a test Android app (`.apk`) on every push, and the iPhone app on demand.
 
+## Usage stats
+
+Anonymous counts (visits, accounts created, drills, practices and tests finished) go to
+GoatCounter. Setup and how to read the numbers: **[STATS.md](STATS.md)**.
+
 ## Player accounts
 
 Each player creates an account with a name and an optional 4-digit PIN. Several players can share one device, and each keeps their own time, test scores, favorites and practices.
@@ -41,6 +46,7 @@ js/core/
   util.js               Helpers: time formatting, dates, toast messages
   store.js              Player accounts, saving progress, backup and restore
   cloud.js              Online saving when running on claude.ai
+  analytics.js          Anonymous usage counts (GoatCounter)
   stats.js              Totals, levels, streaks, medals, practice of the day
   demo.js               The animated pitch diagram (or a video)
   timer.js              Full-screen countdown, pause, rest breaks, sounds
@@ -51,6 +57,7 @@ js/views/               One file per page; each returns HTML
   tests.js              Tests list, test page, score chart
   rewards.js            Rewards page
   account.js            Sign-in, new player, PIN, account settings
+js/config.js            Settings: your GoatCounter code
 js/sessions.js          Doing a drill, running a practice, taking a test
 js/app.js               Connects it all: page state, drawing, button actions
 videos/                 Optional drill videos (see videos/README.md)
