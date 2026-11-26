@@ -1,6 +1,6 @@
 # Touch Time – Soccer Drills
 
-A soccer training app: 133 drills, 61 timed skill tests with medals, 14 practices plus a practice builder, and rewards (daily goals, streaks, weekly challenges, topic mastery, levels, badges and avatars).
+A soccer training app: 133 drills, 61 timed skill tests rated 1 to 5 stars, 14 practices plus a practice builder, and rewards (daily goals, streaks, weekly challenges, topic mastery, levels, badges and avatars).
 
 No build step, no server code, no dependencies. It's plain HTML, CSS and JavaScript.
 
@@ -41,16 +41,16 @@ index.html              Page shell; loads the scripts below in order
 css/styles.css          All styling (light and dark mode)
 js/data/                The content: edit these to add or change things
   drills.js             Every drill: steps, what you need, demo animation
-  tests.js              Every test: time, what to count, medal targets
+  tests.js              Every test: time, what to count, star targets
   practices.js          Built-in practices (lists of drill ids)
-  rewards.js            Topics, daily goal, levels, badges, avatars, medals
+  rewards.js            Topics, daily goal, levels, badges, avatars, stars
 js/core/
   util.js               Helpers: time formatting, dates, toast messages
   hash.js               Password and email fingerprints (salted SHA-256)
   store.js              Player accounts, saving progress, backup and restore
   cloud.js              Online saving when running on claude.ai
   analytics.js          Anonymous usage counts (GoatCounter)
-  stats.js              Totals, levels, streaks, medals, practice of the day
+  stats.js              Totals, levels, streaks, test stars, practice of the day
   demo.js               The animated pitch diagram (or a video)
   timer.js              Full-screen countdown, pause, rest breaks, sounds
 js/views/               One file per page; each returns HTML
@@ -79,4 +79,4 @@ Buttons say what they do with a `data-action` attribute, for example `data-actio
 - **Add a drill:** add a line to `js/data/drills.js` with a new unique `id` and an existing `topic`.
 - **Add a practice:** add a line to `js/data/practices.js` that lists drill ids.
 - **Add a video:** put the file in `videos/` and add `"video": "videos/your-file.mp4"` to the drill.
-- **Change medal targets:** edit `medals` on the test in `js/data/tests.js`.
+- **Change star targets:** edit `stars` on the test in `js/data/tests.js` (five scores, each higher than the last).

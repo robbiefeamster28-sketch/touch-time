@@ -122,17 +122,17 @@ TT.sessions = (function () {
   function testSave(n) {
     var t = test.t;
     var prevBest = s.bestOf(t.id);
-    var prevMedal = prevBest == null ? 0 : s.medalOf(t, prevBest);
-    var medal = s.medalOf(t, n);
+    var prevStars = prevBest == null ? 0 : s.starsOf(t, prevBest);
+    var stars = s.starsOf(t, n);
     store.addResult(t.id, n);
     store.logTime(t.id, t.seconds);
     TT.analytics.event("test-taken");
     timer.show(
-      '<div class="done"><div style="font-size:64px">' + (medal ? TT.MEDALS[medal].emoji : "💪") + "</div>" +
+      '<div class="done"><div class="result-stars">' + TT.starRow(stars) + "</div>" +
       '<div class="big">' + n + " " + t.unit + "</div>" +
-      "<p>" + (medal ? TT.MEDALS[medal].name + " medal!" : "No medal yet. Bronze is " + t.medals.bronze + ".") + "</p>" +
+      "<p>" + (stars ? stars + (stars === 1 ? " star!" : " stars!") + (stars < 5 ? " " + (stars + 1) + "★ is " + t.stars[stars] + "." : " Top score!") : "No stars yet. 1★ is " + t.stars[0] + ".") + "</p>" +
       (prevBest == null || n > prevBest ? "<p><b>New personal best!</b></p>" : "") +
-      (medal > prevMedal ? "<p><b>Medal upgrade!</b></p>" : "") +
+      (stars > prevStars ? "<p><b>Star upgrade!</b></p>" : "") +
       '</div><button class="go" data-action="timer-close">Done</button>'
     );
     test = null;

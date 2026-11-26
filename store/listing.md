@@ -36,10 +36,10 @@ PRACTICES THAT RUN THEMSELVES
 • Build your own practice from any drills, in any order
 • Built-in timer with 3-2-1 countdown, halfway beep, pause, and rest breaks between drills
 
-SKILL TESTS WITH MEDALS
+SKILL TESTS WITH STARS
 • 61 timed tests: toe taps, juggling, wall passes, cone weaves and more
-• Tap to count your reps while the clock runs
-• Earn bronze, silver and gold, track personal bests, and see your progress chart
+• Do as many reps as you can, then enter your score
+• Earn 1 to 5 stars, track personal bests, and see your progress chart
 
 STAY MOTIVATED
 • Daily goal ring, day streaks and weekly challenges

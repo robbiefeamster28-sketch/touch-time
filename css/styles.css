@@ -1,7 +1,7 @@
 /* Touch Time — "Match day" style.
    Layout: phone-app shell. Top bar (brand + account) and a fixed bottom tab
    bar; content in one centred column. Team-kit colours: royal blue for
-   navigation and progress, coral for "go" actions, gold for medals. */
+   navigation and progress, coral for "go" actions, gold for test stars. */
 /* Fonts ship with the app (fonts/) so it works offline. */
 @font-face { font-family: "Big Shoulders Display"; src: url("../fonts/big-shoulders-display.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "DM Sans"; src: url("../fonts/dm-sans.woff2") format("woff2"); font-weight: 100 1000; font-display: swap; }
@@ -414,3 +414,17 @@ video.pitch { background: #000; max-height: 60vh; }
 .link { align-self: flex-start; background: none; border: 0; padding: 8px 0; color: var(--primary); font-weight: 700; text-decoration: underline; }
 .go.danger-fill { background: var(--danger); color: var(--surface); }
 input[type="file"].field { padding: 10px; }
+
+/* ---------- test stars ---------- */
+.stars { color: var(--gold); letter-spacing: 0.06em; white-space: nowrap; }
+.stars .off { color: var(--line); }
+.result-stars { font-size: 48px; line-height: 1; margin-bottom: 8px; }
+.star-targets { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 6px; }
+.star-targets li {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+  font-size: 20px;
+}
+.star-targets li.got { border-color: var(--gold); }
+.star-targets .need-n { font: 800 22px/1 var(--display); font-variant-numeric: tabular-nums; }
+.drill .t .stars { font-size: 13px; }

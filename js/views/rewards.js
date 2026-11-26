@@ -86,20 +86,22 @@ TT.views.rewards = (function () {
   }
 
   function testTotals() {
-    var counts = [0, 0, 0, 0], reps = 0;
-    TT.TESTS.forEach(function (t) {
-      var b = s.bestOf(t.id);
-      if (b != null) counts[s.medalOf(t, b)]++;
-    });
-    store.state.results.forEach(function (r) { reps += r.sc; });
     var taken = TT.TESTS.filter(function (t) { return s.bestOf(t.id) != null; });
+    var stars = 0, fives = 0;
+    taken.forEach(function (t) {
+      var n = s.starsOf(t, s.bestOf(t.id));
+      stars += n;
+      if (n === TT.STARS) fives++;
+    });
     return (
       '<h2 class="sec">Tests</h2><div class="stats">' +
-      c.stat("🥇 " + counts[3], "Gold") + c.stat("🥈 " + counts[2], "Silver") + c.stat("🥉 " + counts[1], "Bronze") +
-      '</div><p class="note">' + store.state.results.length + " tests taken · " + reps + ' total reps counted</p><div class="badges">' +
+      c.stat("★ " + stars, "Stars earned") + c.stat(fives, "5★ tests") + c.stat(store.state.results.length, "Tests taken") +
+      "</div>" +
+      (taken.length ? '<p class="note">' + stars + " of " + taken.length * TT.STARS + " stars on the " + taken.length + (taken.length === 1 ? " test" : " tests") + " you’ve tried.</p>" : "") +
+      '<div class="badges">' +
       taken.map(function (t) {
-        var b = s.bestOf(t.id), m = s.medalOf(t, b);
-        return badge(m > 0, m ? TT.MEDALS[m].emoji : t.emoji, t.name, "Best " + b + " " + t.unit);
+        var b = s.bestOf(t.id), n = s.starsOf(t, b);
+        return '<div class="badge' + (n ? "" : " lock") + '"><span class="em">' + t.emoji + "</span><span><b>" + esc(t.name) + "</b><small>" + TT.starRow(n) + " · best " + b + "</small></span></div>";
       }).join("") + "</div>"
     );
   }

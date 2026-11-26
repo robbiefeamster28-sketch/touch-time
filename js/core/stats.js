@@ -1,4 +1,4 @@
-// Everything calculated from saved progress: totals, levels, streaks, medals.
+// Everything calculated from saved progress: totals, levels, streaks, test stars.
 window.TT = window.TT || {};
 
 TT.stats = (function () {
@@ -68,9 +68,11 @@ TT.stats = (function () {
     return best;
   }
 
-  // 0 none, 1 bronze, 2 silver, 3 gold
-  function medalOf(t, score) {
-    return score >= t.medals.gold ? 3 : score >= t.medals.silver ? 2 : score >= t.medals.bronze ? 1 : 0;
+  // How many stars (0-5) a score earns on a test.
+  function starsOf(t, score) {
+    var n = 0;
+    t.stars.forEach(function (need) { if (score >= need) n++; });
+    return n;
   }
 
   function bestOf(testId) {
@@ -124,7 +126,7 @@ TT.stats = (function () {
     level: level,
     streak: streak,
     longestStreak: longestStreak,
-    medalOf: medalOf,
+    starsOf: starsOf,
     bestOf: bestOf,
     lastTested: lastTested,
     retestDue: retestDue,
