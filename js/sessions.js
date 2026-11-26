@@ -40,8 +40,12 @@ TT.sessions = (function () {
   }
 
   // ---- practice: several drills in a row ----
-  // Each drill waits for the player to tap Start, and any drill can be skipped.
+  // The first drill waits for Start. After each finished drill there's a
+  // 15-second break showing the next drill; it then starts by itself (or
+  // straight away with "Go to next drill"). Any drill can be skipped, and
+  // "Return to practice" goes back to the practice page.
 
+  var BREAK = 15; // seconds between drills
   var run = null; // { name, drills, index, seconds, before, done, skipped, last }
 
   function practice(p, seconds) {
@@ -49,21 +53,42 @@ TT.sessions = (function () {
     intro();
   }
 
-  // "Drill 2 of 5" screen with the demo and what you need. Waits for Start.
-  function intro() {
-    var d = s.drill(run.drills[run.index]);
-    var last = run.last
-      ? '<p class="practice-last">' + (run.last.skipped ? "Skipped " : "✓ ") + esc(run.last.name) + (run.last.skipped ? "" : " done") + "</p>"
-      : "";
-    timer.show(
-      last +
-      '<small class="muted">Drill ' + (run.index + 1) + " of " + run.drills.length + "</small>" +
+  function lastLine() {
+    if (!run.last) return "";
+    return '<p class="practice-last">' + (run.last.skipped ? "Skipped " : "✓ ") + esc(run.last.name) + (run.last.skipped ? "" : " done") + "</p>";
+  }
+
+  // The next drill: number, name, animated demo and what you need.
+  function preview(d) {
+    return '<small class="muted">Drill ' + (run.index + 1) + " of " + run.drills.length + "</small>" +
       "<h2>" + esc(d.name) + "</h2>" +
       '<div class="demo">' + TT.demo.pitch(d) + "</div>" +
-      "<p>You need: " + esc((d.needs || []).join(", ")) + "</p>" +
+      "<p>You need: " + esc((d.needs || []).join(", ")) + "</p>";
+  }
+
+  var BACK = '<button class="ghost" data-action="timer-close">Return to practice</button>';
+
+  // Waits for Start: the first drill, and the one after a skipped drill.
+  function intro() {
+    var d = s.drill(run.drills[run.index]);
+    timer.show(
+      lastLine() + preview(d) +
       '<button class="go" data-action="practice-go">Start ' + fmt(run.seconds) + "</button>" +
-      '<div class="btnrow"><button class="ghost" data-action="practice-skip">Skip this drill</button>' +
-      '<button class="ghost" data-action="timer-close">End practice</button></div>'
+      '<div class="btnrow"><button class="ghost" data-action="practice-skip">Skip this drill</button>' + BACK + "</div>"
+    );
+  }
+
+  // 15-second break after a finished drill, then the next one starts.
+  function breakScreen() {
+    var d = s.drill(run.drills[run.index]);
+    timer.countdown(
+      BREAK,
+      lastLine() +
+      '<div class="break-count"><span>Next drill in</span><b class="big" id="cd">' + BREAK + "</b></div>" +
+      preview(d) +
+      '<button class="go" data-action="break-go">Go to next drill</button>' +
+      '<div class="btnrow"><button class="ghost" data-action="practice-skip">Skip this drill</button>' + BACK + "</div>",
+      practiceGo
     );
   }
 
@@ -81,8 +106,8 @@ TT.sessions = (function () {
     });
   }
 
-  // Skip the current drill: from its Start screen, or while it's running
-  // (no time is counted for a skipped drill).
+  // Skip the current drill: from its screen, from the break, or while it's
+  // running (no time is counted for a skipped drill).
   function practiceSkip() {
     if (!run) return;
     timer.cancel();
@@ -94,9 +119,8 @@ TT.sessions = (function () {
     run.last = { name: d.name, skipped: skipped };
     run.index++;
     if (run.index >= run.drills.length) return practiceDone();
-    var rest = store.state.rest;
-    if (rest > 0 && !skipped) timer.rest(rest, s.drill(run.drills[run.index]).name, intro);
-    else intro();
+    if (skipped) intro();
+    else breakScreen();
   }
 
   function practiceDone() {

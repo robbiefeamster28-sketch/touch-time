@@ -1,4 +1,4 @@
-// The full-screen timer: 3-2-1 countdown, ring timer with pause, rest breaks.
+// The full-screen timer: 3-2-1 countdown, ring timer with pause, breaks between drills.
 // It only shows screens and calls back; app.js decides what each finish means.
 window.TT = window.TT || {};
 
@@ -141,30 +141,28 @@ TT.timer = (function () {
     }
   }
 
-  // Rest break between practice drills.
-  function rest(seconds, nextName, onDone) {
+  // A counted-down break: shows `html` (which holds an element with id "cd"
+  // for the number), counts down once a second, then calls onDone.
+  // skipBreak() ends it early and calls onDone straight away.
+  function countdown(seconds, html, onDone) {
     clear();
     var n = seconds;
-    show(
-      '<small class="muted">Rest</small>' +
-      '<div class="big countdown" id="cd">' + n + "</div>" +
-      "<p>Next: " + u.esc(nextName) + "</p>" +
-      '<button class="go" data-action="rest-skip">Skip rest</button>' +
-      '<button class="ghost" data-action="timer-close">End practice</button>'
-    );
-    skipRest = function () { clear(); onDone(); };
+    show(html);
+    skipBreak = function () { clear(); onDone(); };
     tick = setInterval(function () {
       n--;
-      u.$("cd").textContent = n;
+      var cd = u.$("cd");
+      if (cd) cd.textContent = n;
+      if (n <= 3 && n > 0) tone(660, 0.08);
       if (n <= 0) {
         clear();
-        tone(660, 0.2);
+        skipBreak = function () {};
         onDone();
       }
     }, 1000);
   }
 
-  var skipRest = function () {};
+  var skipBreak = function () {};
 
   // Stop the running clock but keep the overlay open (e.g. to skip a drill).
   function cancel() {
@@ -177,8 +175,8 @@ TT.timer = (function () {
     start: start,
     cancel: cancel,
     pause: pause,
-    rest: rest,
-    skipRest: function () { skipRest(); },
+    countdown: countdown,
+    skipBreak: function () { skipBreak(); },
     show: show,
     close: close,
     onClose: function (fn) { onClose = fn; }

@@ -432,3 +432,8 @@ input[type="file"].field { padding: 10px; }
 /* Practice: what you just did, shown above the next drill. */
 .practice-last { font-weight: 700; color: var(--primary); }
 .timer .btnrow { flex-wrap: wrap; justify-content: center; }
+
+/* Break between practice drills. */
+.break-count { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.break-count span { color: var(--mute); font-weight: 700; font-size: 15px; }
+.break-count b { font-size: 88px; color: var(--accent); font-variant-numeric: tabular-nums; }

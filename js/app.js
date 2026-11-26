@@ -81,7 +81,6 @@ window.TT = window.TT || {};
     "level-filter": function (el) { ui.levelFilter = el.dataset.value; render(); },
     fav: function (el) { store.toggleFav(el.dataset.id); render(); },
     length: function (el) { ui.length = +el.dataset.value; render(); },
-    rest: function (el) { store.setRest(+el.dataset.value); render(); },
 
     "open-drill": function (el) { ui.drill = el.dataset.id; top(); },
     "close-drill": function () { ui.drill = null; top(); },
@@ -177,7 +176,7 @@ window.TT = window.TT || {};
 
     "timer-pause": function () { TT.timer.pause(); },
     "timer-close": function () { TT.timer.close(); },
-    "rest-skip": function () { TT.timer.skipRest(); }
+    "break-go": function () { TT.timer.skipBreak(); }
   };
 
   document.addEventListener("click", function (e) {

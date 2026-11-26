@@ -53,16 +53,12 @@ TT.views.practices = (function () {
 
   function detail(ui) {
     var p = find(ui.practice);
-    var ids = drillsOf(p), n = ids.length, rest = store.state.rest;
+    var ids = drillsOf(p), n = ids.length, BREAK = 15;
     return (
       c.back("All practices", "close-practice") +
       '<div class="detail"><h2>' + (p.emoji || "⭐") + " " + esc(p.name) + "</h2><p>" + esc(p.description || "") + "</p>" +
       '<h3 class="need">Time per drill</h3>' + c.lengthPicker(ui.length) +
-      '<h3 class="need">Rest between drills</h3><div class="pick four">' +
-      [0, 10, 20, 30].map(function (sec) {
-        return '<button aria-pressed="' + (rest === sec) + '" data-action="rest" data-value="' + sec + '">' + (sec ? sec + "s" : "None") + "</button>";
-      }).join("") + "</div>" +
-      '<p class="note">' + n + " drills · about " + u.fmt(n * ui.length + Math.max(0, n - 1) * rest) + " in total</p>" +
+      '<p class="note">' + n + " drills · about " + u.fmt(n * ui.length + Math.max(0, n - 1) * BREAK) + " in total, with a 15-second break between drills</p>" +
       ids.map(function (id, i) { return drillRow(s.drill(id), i, ui.length); }).join("") +
       '<button class="go" style="margin-top:8px" data-action="start-practice">Start practice</button>' +
       (p.mine ? '<div class="vctl" style="margin-top:8px"><button class="ghost" data-action="edit-practice">Edit</button><button class="ghost" data-action="delete-practice">Delete</button></div>' : "") +
