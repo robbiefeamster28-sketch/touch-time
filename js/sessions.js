@@ -83,16 +83,16 @@ TT.sessions = (function () {
     run = null;
   }
 
-  // ---- test: count reps against the clock ----
+  // ---- test: do as many reps as you can, then type the score ----
 
-  var test = null; // { t, count }
+  var test = null; // { t }
 
   function testIntro(id) {
     var t = s.test(id);
-    test = { t: t, count: 0 };
+    test = { t: t };
     timer.show(
       "<h2>" + esc(t.name) + "</h2>" +
-      "<p>You have " + t.seconds + " seconds. " + esc(t.howToCount) + " Tap the big button each time you complete one.</p>" +
+      "<p>You have " + t.seconds + " seconds. " + esc(t.howToCount) + " Keep count in your head, then enter your score when the time is up.</p>" +
       '<button class="go" data-action="test-go">Start</button>' +
       '<button class="ghost" data-action="timer-close">Cancel</button>'
     );
@@ -100,37 +100,27 @@ TT.sessions = (function () {
 
   function testGo() {
     var t = test.t;
-    test.count = 0;
-    timer.start({
-      title: t.name,
-      seconds: t.seconds,
-      extra: '<div class="big count" id="cnt">0</div><button class="go tap" data-action="test-count" data-value="1">Tap: +1 ' + t.unit + "</button>",
-      onDone: testReview
-    });
+    timer.start({ title: t.name, seconds: t.seconds, onDone: testReview });
   }
 
-  function count(n) {
-    if (!test) return;
-    test.count = Math.max(0, test.count + n);
-    var el = u.$("cnt");
-    if (el) el.textContent = test.count;
-  }
-
-  // Time's up: let the player fix a miscount before saving.
+  // Time's up: the player types how many they got.
   function testReview() {
     var t = test.t;
     timer.show(
       "<h2>Time!</h2>" +
-      '<div class="big" style="font-size:72px" id="cnt">' + test.count + "</div>" +
-      "<div>" + t.unit + " counted. Fix the number if you miscounted.</div>" +
-      '<div class="pick two"><button data-action="test-count" data-value="-1">−</button><button data-action="test-count" data-value="1">+</button></div>' +
-      '<button class="go" data-action="test-save">Save result</button>' +
+      '<form class="score-form" data-form="test-score">' +
+      '<label class="score-label" for="score">How many ' + esc(t.unit) + " did you get?</label>" +
+      '<input class="score-input" id="score" name="score" type="number" inputmode="numeric" min="0" max="999" step="1" autocomplete="off" placeholder="0">' +
+      '<button class="go" type="submit">Save result</button>' +
+      "</form>" +
       '<button class="ghost" data-action="timer-close">Discard</button>'
     );
+    var input = u.$("score");
+    if (input) input.focus();
   }
 
-  function testSave() {
-    var t = test.t, n = test.count;
+  function testSave(n) {
+    var t = test.t;
     var prevBest = s.bestOf(t.id);
     var prevMedal = prevBest == null ? 0 : s.medalOf(t, prevBest);
     var medal = s.medalOf(t, n);
@@ -154,7 +144,6 @@ TT.sessions = (function () {
     practiceGo: practiceGo,
     test: testIntro,
     testGo: testGo,
-    count: count,
     testSave: testSave
   };
 })();

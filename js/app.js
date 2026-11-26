@@ -89,8 +89,6 @@ window.TT = window.TT || {};
     "close-test": function () { ui.test = null; top(); },
     "start-test": function () { TT.sessions.test(ui.test); },
     "test-go": function () { TT.sessions.testGo(); },
-    "test-count": function (el) { TT.sessions.count(+el.dataset.value); },
-    "test-save": function () { TT.sessions.testSave(); },
 
     "open-practice": function (el) { ui.practice = el.dataset.id; top(); },
     "close-practice": function () { ui.practice = null; top(); },
@@ -206,6 +204,13 @@ window.TT = window.TT || {};
         f.pin.value = "";
         u.toast("That PIN isn’t right.");
       }
+    },
+    "test-score": function (f) {
+      var raw = f.score.value.trim();
+      if (raw === "") return u.toast("Enter your score.");
+      var n = Number(raw);
+      if (!/^\d+$/.test(raw) || n > 999) return u.toast("Enter a whole number, like 42.");
+      TT.sessions.testSave(n);
     },
     rename: function (f) {
       var name = f.name.value.trim();

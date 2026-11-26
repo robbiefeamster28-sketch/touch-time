@@ -42,10 +42,13 @@ TT.analytics = (function () {
       "rnd=" + Math.random().toString(36).slice(2)
     ];
     if (isEvent) q.push("e=true");
+    var url = "https://" + code() + ".goatcounter.com/count?" + q.join("&");
+    // sendBeacon is delivered even if the screen changes straight after
+    // (GoatCounter's own script uses it); an image request is the fallback.
     try {
-      var img = new Image();
-      img.src = "https://" + code() + ".goatcounter.com/count?" + q.join("&");
+      if (navigator.sendBeacon && navigator.sendBeacon(url)) return;
     } catch (e) {}
+    try { new Image().src = url; } catch (e) {}
   }
 
   // One visit each time the app opens: "/" on the website, "/app/android" or
