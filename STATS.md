@@ -41,7 +41,7 @@ Sign in at `https://<your-code>.goatcounter.com`. Pick the date range at the top
 
 ## Good to know
 
-- Only counts are sent: never names, PINs, scores or progress. See `privacy.html`.
+- Only counts are sent: never names, emails, passwords, scores or progress. See `privacy.html`.
 - Not counted: the claude.ai preview, testing on your own computer, and visitors whose
   browser has **Do Not Track** turned on. So real numbers may be a little higher.
 - To turn stats off, empty the quotes in `js/config.js` again.

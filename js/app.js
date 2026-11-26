@@ -18,21 +18,22 @@ window.TT = window.TT || {};
     practice: null, // open practice id
     builder: null, // practice being built: { id, name, drills, ... }
     builderTopic: "dribbling",
-    account: false, // account page open
-    pinFor: null // player id waiting for their PIN
+    account: false, // account / sign-in page open
+    authMode: "", // signed out: "" (sign in / create) or "transfer" (from another device)
+    accountMode: "" // signed in: "" (account page), "forgot" or "deactivate"
   };
 
   // Back to the main tabs, e.g. after switching player.
   function resetUi() {
     ui.view = "practices";
-    ui.drill = ui.test = ui.practice = ui.builder = ui.pinFor = null;
+    ui.drill = ui.test = ui.practice = ui.builder = null;
     ui.account = false;
+    ui.authMode = ui.accountMode = "";
     ui.query = "";
   }
 
   function page() {
-    if (ui.pinFor) return V.account.pinEntry(ui);
-    if (ui.account) return store.isGuest() ? V.account.signIn(ui) : V.account.page();
+    if (ui.account) return store.isGuest() ? V.account.signIn(ui) : V.account.page(ui);
     if (ui.builder) return V.practices.builder(ui);
     if (ui.test) return V.tests.detail(ui);
     if (ui.drill) return V.drills.detail(ui);
@@ -48,7 +49,7 @@ window.TT = window.TT || {};
 
   // Which bottom tab to highlight: none while on account screens.
   function activeTab() {
-    return ui.account || ui.pinFor ? "" : ui.view;
+    return ui.account ? "" : ui.view;
   }
 
   function render() {
@@ -68,8 +69,9 @@ window.TT = window.TT || {};
 
   var actions = {
     tab: function (el) {
-      ui.drill = ui.test = ui.practice = ui.builder = ui.pinFor = null;
+      ui.drill = ui.test = ui.practice = ui.builder = null;
       ui.account = false;
+      ui.authMode = ui.accountMode = "";
       ui.view = el.dataset.value;
       ui.query = "";
       top();
@@ -147,24 +149,27 @@ window.TT = window.TT || {};
     },
 
     "choose-player": function (el) {
-      var id = el.dataset.id;
-      if (store.hasPin(id)) { ui.pinFor = id; return top(); }
-      store.signIn(id);
+      store.signIn(el.dataset.id); // no password needed on this device
       resetUi();
       top();
+      u.toast("Hi " + store.current().name + "!");
     },
-    "cancel-pin": function () { ui.pinFor = null; ui.account = true; top(); },
-    "open-account": function () { ui.account = true; top(); },
-    "close-account": function () { ui.account = false; top(); },
+    "open-account": function () { ui.account = true; ui.authMode = ui.accountMode = ""; top(); },
+    "close-account": function () { ui.account = false; ui.authMode = ui.accountMode = ""; top(); },
+    "auth-transfer": function () { ui.authMode = "transfer"; top(); },
+    "auth-back": function () { ui.authMode = ""; top(); },
+    "account-main": function () { ui.accountMode = ""; top(); },
+    "account-forgot": function () { ui.accountMode = "forgot"; top(); },
+    "account-deactivate": function () { ui.accountMode = "deactivate"; top(); },
     "sign-out": function () { store.signOut(); resetUi(); top(); },
-    "remove-pin": function () { store.setPin(""); render(); u.toast("PIN removed"); },
     "sync-retry": function () { TT.cloud.retry(); },
-    "delete-player": function (el) {
-      if (!u.confirmTap(el, "Tap again to delete " + store.current().name + " and all their progress")) return;
-      store.deletePlayer();
-      resetUi();
-      top();
-      u.toast("Account deleted");
+    "toggle-pw": function (el) {
+      var input = u.$(el.dataset.for);
+      if (!input) return;
+      var show = input.type === "password";
+      input.type = show ? "text" : "password";
+      el.textContent = show ? "Hide" : "Show";
+      el.setAttribute("aria-label", show ? "Hide password" : "Show password");
     },
 
     "chips-step": function (el) { TT.scrollRows.step(el, +el.dataset.value); },
@@ -182,28 +187,108 @@ window.TT = window.TT || {};
 
   // ---- forms ----
 
+  // Shows what's wrong and puts the cursor in that box. Returns false.
+  function fail(input, message) {
+    u.toast(message);
+    if (input) {
+      input.setAttribute("aria-invalid", "true");
+      input.focus();
+    }
+    return false;
+  }
+
+  var NAME_OK = /^[\p{L}\p{N} ._'-]+$/u;
+  var EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function checkNames(f, exceptId) {
+    var first = f.first.value.trim(), last = f.last.value.trim(), name = f.name.value.trim();
+    if (!first) return fail(f.first, "Enter your first name.");
+    if (!last) return fail(f.last, "Enter your last name.");
+    if (!NAME_OK.test(first) || !NAME_OK.test(last)) return fail(!NAME_OK.test(first) ? f.first : f.last, "Names can use letters, spaces, dashes and apostrophes.");
+    if (name.length < 2) return fail(f.name, "Your profile name needs at least 2 characters.");
+    if (!NAME_OK.test(name)) return fail(f.name, "Profile names can use letters, numbers, spaces, dots and dashes.");
+    if (store.nameTaken(name, exceptId)) return fail(f.name, "“" + name + "” is already used on this device. Pick another profile name.");
+    return true;
+  }
+
+  function checkNewPassword(input) {
+    if (input.value.length < 6) return fail(input, "Your password needs at least 6 characters.");
+    return true;
+  }
+
+  function checkEmail(input, required) {
+    var v = input.value.trim();
+    if (!v) return required ? fail(input, "Enter your email.") : true;
+    if (!EMAIL_OK.test(v)) return fail(input, "That email doesn’t look right. Check it and try again.");
+    return true;
+  }
+
   var forms = {
     "create-player": function (f) {
-      var name = f.name.value.trim(), pin = f.pin.value.trim();
-      if (!name) return u.toast("Enter a player name.");
-      if (pin && !/^[0-9]{4}$/.test(pin)) return u.toast("A PIN is 4 numbers.");
-      var taken = store.players().some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
-      if (taken) return u.toast("There’s already a player called " + name + ".");
-      store.createPlayer(name, pin);
+      if (!checkNames(f) || !checkNewPassword(f.password) || !checkEmail(f.email, false)) return;
+      store.createPlayer({
+        first: f.first.value, last: f.last.value, name: f.name.value,
+        password: f.password.value, email: f.email.value.trim()
+      });
       TT.analytics.event("account-created");
-      ui.draftName = "";
       resetUi();
       top();
       u.toast("Welcome, " + store.current().name + "!");
     },
-    pin: function (f) {
-      if (store.signIn(ui.pinFor, f.pin.value.trim())) {
+    transfer: function (f) {
+      var file = f.file.files[0];
+      if (!file) return fail(f.file, "Choose the backup file from your other device.");
+      if (!f.password.value) return fail(f.password, "Enter your password.");
+      file.text().then(function (text) {
+        var result;
+        try { result = store.signInWithBackup(text, f.password.value); } catch (e) { return fail(f.file, "That file isn’t a Touch Time backup."); }
+        if (result === "no-account") return fail(f.file, "That backup has no account in it. Make it from Account › Download backup while signed in.");
+        if (result === "wrong-password") return fail(f.password, "That password isn’t right for this backup.");
         resetUi();
         top();
-      } else {
-        f.pin.value = "";
-        u.toast("That PIN isn’t right.");
-      }
+        u.toast("Signed in as " + store.current().name);
+      });
+    },
+    profile: function (f) {
+      if (!checkNames(f, store.current().id)) return;
+      store.updateProfile({ first: f.first.value, last: f.last.value, name: f.name.value });
+      render();
+      u.toast("Profile saved");
+    },
+    "set-password": function (f) {
+      if (!checkNewPassword(f.password)) return;
+      store.setPassword(f.password.value);
+      render();
+      u.toast("Password saved");
+    },
+    "change-password": function (f) {
+      if (!f.old.value) return fail(f.old, "Enter your current password.");
+      if (!checkNewPassword(f.password)) return;
+      if (!store.changePassword(f.old.value, f.password.value)) return fail(f.old, "Your current password isn’t right.");
+      render();
+      u.toast("Password changed");
+    },
+    "set-email": function (f) {
+      if (!checkEmail(f.email, false)) return;
+      if (!f.password.value) return fail(f.password, "Enter your password to change the email.");
+      if (!store.setEmail(f.email.value.trim(), f.password.value)) return fail(f.password, "That password isn’t right.");
+      render();
+      u.toast(f.email.value.trim() ? "Email saved" : "Email removed");
+    },
+    "reset-password": function (f) {
+      if (!checkEmail(f.email, true) || !checkNewPassword(f.password)) return;
+      if (!store.resetPassword(store.current().id, f.email.value, f.password.value)) return fail(f.email, "That isn’t the email saved on this account.");
+      ui.accountMode = "";
+      top();
+      u.toast("New password set");
+    },
+    deactivate: function (f) {
+      if (store.hasPassword() && !f.password.value) return fail(f.password, "Enter your password.");
+      var name = store.current().name;
+      if (!store.deletePlayer(f.password ? f.password.value : "")) return fail(f.password, "That password isn’t right.");
+      resetUi();
+      top();
+      u.toast(name + "’s account was deactivated");
     },
     "test-score": function (f) {
       var raw = f.score.value.trim();
@@ -211,20 +296,6 @@ window.TT = window.TT || {};
       var n = Number(raw);
       if (!/^\d+$/.test(raw) || n > 999) return u.toast("Enter a whole number, like 42.");
       TT.sessions.testSave(n);
-    },
-    rename: function (f) {
-      var name = f.name.value.trim();
-      if (!name) return;
-      store.renamePlayer(name);
-      render();
-      u.toast("Name saved");
-    },
-    "set-pin": function (f) {
-      var pin = f.pin.value.trim();
-      if (!/^[0-9]{4}$/.test(pin)) return u.toast("A PIN is 4 numbers.");
-      store.setPin(pin);
-      render();
-      u.toast("PIN saved");
     }
   };
 
@@ -243,9 +314,10 @@ window.TT = window.TT || {};
       ui.query = e.target.value;
       var box = u.$("results");
       if (box) box.innerHTML = ui.view === "tests" ? V.tests.results(ui) : V.drills.results(ui);
-    } else if (e.target.id === "pname") {
-      ui.draftName = e.target.value; // kept if the screen redraws while typing
-    } else if (kind === "practice-name" && ui.builder) {
+    } else if (e.target.getAttribute("aria-invalid")) {
+      e.target.removeAttribute("aria-invalid"); // they're fixing it
+    }
+    if (kind === "practice-name" && ui.builder) {
       ui.builder.name = e.target.value;
     }
   });

@@ -25,12 +25,14 @@ GoatCounter. Setup and how to read the numbers: **[STATS.md](STATS.md)**.
 
 ## Player accounts
 
-Each player creates an account with a name and an optional 4-digit PIN. Several players can share one device, and each keeps their own time, test scores, favorites and practices.
+Anyone can train as a guest. To keep progress in an account, a player signs up with first and last name, a profile name, a password and an optional email. Several players can share one device and switch between profiles without a password; each keeps their own time, test scores, favorites and practices.
+
+The password is needed to deactivate the account, to change the password or email, and to sign in on another device with a backup file (Account → Download backup, then *Signed up on another device? Sign in*). The optional email lets a player set a new password if they forget it. Passwords and emails are stored only as salted fingerprints (`js/core/hash.js`).
 
 - **On claude.ai** (the published preview), accounts and progress are also saved to the visitor's online claude.ai storage, so they follow them to any device where they sign in to claude.ai.
 - **Everywhere else** (GitHub Pages, opening the file), accounts are saved in that browser. To move progress to another device, use **Account → Download backup**, then **Restore backup** on the other device.
 
-The PIN only keeps people on a shared device out of each other's account. It isn't strong security.
+Accounts live on the device; nothing is sent to a server (except claude.ai's own storage in the preview).
 
 ## Project layout
 
@@ -44,6 +46,7 @@ js/data/                The content: edit these to add or change things
   rewards.js            Topics, daily goal, levels, badges, avatars, medals
 js/core/
   util.js               Helpers: time formatting, dates, toast messages
+  hash.js               Password and email fingerprints (salted SHA-256)
   store.js              Player accounts, saving progress, backup and restore
   cloud.js              Online saving when running on claude.ai
   analytics.js          Anonymous usage counts (GoatCounter)
@@ -56,7 +59,7 @@ js/views/               One file per page; each returns HTML
   drills.js             Drills list and drill page
   tests.js              Tests list, test page, score chart
   rewards.js            Rewards page
-  account.js            Sign-in, new player, PIN, account settings
+  account.js            Sign in, create account, other-device sign-in, account settings
 js/config.js            Settings: your GoatCounter code
 js/sessions.js          Doing a drill, running a practice, taking a test
 js/app.js               Connects it all: page state, drawing, button actions

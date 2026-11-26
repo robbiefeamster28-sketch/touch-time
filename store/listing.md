@@ -47,7 +47,7 @@ STAY MOTIVATED
 
 FOR FAMILIES AND TEAMS
 • Use it straight away as a guest, or create player accounts
-• Several players can share one phone, each with their own progress and an optional PIN
+• Several players can share one phone, each with their own account and progress
 • Works offline. No ads and no tracking: only anonymous usage counts.
 
 ## Keywords (Apple, 100 characters max)
@@ -69,7 +69,7 @@ user-generated content shared with others, location sharing, or purchases.
 
 - Does your app collect or share any of the required user data types? **Yes**
 - Is all of the user data collected by your app encrypted in transit? **Yes**
-- Do you provide a way for users to request that their data is deleted? **Yes**: in the app, Account > Delete this account.
+- Do you provide a way for users to request that their data is deleted? **Yes**: in the app, Account > Deactivate account.
 - Data types: tick only **App activity › App interactions**. For it:
   - Collected: **Yes**. Shared: **No**.
   - Processed ephemerally: **No**. Required: **Yes** (users can't turn it off in the app).
@@ -88,8 +88,8 @@ user-generated content shared with others, location sharing, or purchases.
 ## Apple: App Review notes
 
 > Touch Time is a soccer training app. No login is needed: it opens as a guest. Player
-> accounts are optional, stored only on the device, and can be deleted in Account >
-> Delete this account. Timers play short beeps; no special permissions are used.
+> accounts are optional, stored only on the device, and can be removed in Account >
+> Deactivate account (needs the account's password). Timers play short beeps; no special permissions are used.
 
 ## Screenshots and graphics
 

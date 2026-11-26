@@ -10,7 +10,7 @@ window.TT = window.TT || {};
 
 TT.store = (function () {
   var KEYS = {
-    players: "touchtime.players", // [{ id, name, pin, created, updated }]
+    players: "touchtime.players", // [player], see "players" below
     current: "touchtime.current", // id of the player signed in on this device
     player: "touchtime.player.", // + id -> that player's progress
     migrated: "touchtime.migrated"
@@ -115,14 +115,13 @@ TT.store = (function () {
   }
 
   // ---- players ----
-
-  // Not real security: a PIN only stops siblings or teammates on a shared
-  // device from opening each other's account.
-  function hashPin(id, pin) {
-    var s = id + ":" + pin, h = 5381;
-    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-    return "h" + (h >>> 0).toString(36);
-  }
+  //
+  // A player: { id, first, last, name (profile name), pwd, salt, mail, msalt,
+  //             created, updated, deleted? }
+  // pwd and mail are slow salted fingerprints (js/core/hash.js), each with its
+  // own salt: the password and email themselves are never stored. On this device players switch
+  // without a password; it's needed to deactivate the account, to sign in on
+  // another device from a backup, and to change the password.
 
   function savePlayers() {
     write(KEYS.players, players);
@@ -153,9 +152,37 @@ TT.store = (function () {
     return { log: log, tres: tres, favs: favs, mine: mine, goal: p.goal, av: p.av, gts: p.ts || 1, rest: p.rest };
   }
 
-  function createPlayer(name, pin) {
+  function clean(v, max) {
+    return String(v || "").replace(/\s+/g, " ").trim().slice(0, max);
+  }
+
+  function emailKey(email) {
+    return String(email || "").trim().toLowerCase();
+  }
+
+  // Is this profile name free on this device? (ignores the player `exceptId`)
+  function nameTaken(name, exceptId) {
+    var n = clean(name, 20).toLowerCase();
+    return activePlayers().some(function (p) { return p.id !== exceptId && String(p.name).toLowerCase() === n; });
+  }
+
+  // info: { first, last, name, password, email (optional) }
+  function createPlayer(info) {
     var id = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    var p = { id: id, name: name.trim().slice(0, 24), pin: pin ? hashPin(id, pin) : "", created: Date.now(), updated: Date.now() };
+    var salt = TT.hash.salt();
+    var p = {
+      id: id,
+      first: clean(info.first, 30),
+      last: clean(info.last, 30),
+      name: clean(info.name, 20),
+      salt: salt,
+      pwd: TT.hash.secret(info.password, salt),
+      msalt: "",
+      mail: "",
+      created: Date.now(),
+      updated: Date.now()
+    };
+    if (info.email) fingerprintEmail(p, info.email);
     var fromGuest = current.guest ? snapshot() : null;
     players.push(p);
     savePlayers();
@@ -179,16 +206,22 @@ TT.store = (function () {
     return players.filter(function (p) { return !p.deleted; });
   }
 
-  function hasPin(id) {
-    var p = findPlayer(id);
-    return !!(p && p.pin);
+  // Accounts made before passwords existed have none yet.
+  function hasPassword(p) {
+    p = p || current;
+    return !!(p && p.pwd && p.salt);
   }
 
-  // Returns false when the PIN is wrong.
-  function signIn(id, pin) {
+  function checkPassword(password, p) {
+    p = p || current;
+    if (!hasPassword(p)) return true;
+    return TT.hash.secret(String(password || ""), p.salt) === p.pwd;
+  }
+
+  // Switching players on this device needs no password.
+  function signIn(id) {
     var p = findPlayer(id);
     if (!p) return false;
-    if (p.pin && p.pin !== hashPin(id, pin || "")) return false;
     write(KEYS.current, id);
     loadPlayer(p);
     emit("signin");
@@ -201,34 +234,87 @@ TT.store = (function () {
     emit("signout");
   }
 
-  function renamePlayer(name) {
-    if (!current || current.guest || !name.trim()) return;
-    current.name = name.trim().slice(0, 24);
+  function touch() {
     current.updated = Date.now();
     savePlayers();
     emit("players");
   }
 
-  function setPin(pin) {
-    if (!current || current.guest) return;
-    current.pin = pin ? hashPin(current.id, pin) : "";
-    current.updated = Date.now();
-    savePlayers();
-    emit("players");
+  // { first, last, name }
+  function updateProfile(info) {
+    if (current.guest) return;
+    if (info.first != null) current.first = clean(info.first, 30);
+    if (info.last != null) current.last = clean(info.last, 30);
+    if (info.name != null && clean(info.name, 20)) current.name = clean(info.name, 20);
+    touch();
   }
 
-  function deletePlayer() {
-    if (!current || current.guest) return;
+  function fingerprintEmail(p, email) {
+    p.msalt = email ? TT.hash.salt() : "";
+    p.mail = email ? TT.hash.secret(emailKey(email), p.msalt) : "";
+  }
+
+  function fingerprintPassword(p, password) {
+    p.salt = TT.hash.salt();
+    p.pwd = TT.hash.secret(password, p.salt);
+  }
+
+  // For accounts made before passwords existed (no current password).
+  function setPassword(password) {
+    if (current.guest || hasPassword()) return false;
+    fingerprintPassword(current, password);
+    touch();
+    return true;
+  }
+
+  function changePassword(oldPassword, newPassword) {
+    if (current.guest || !checkPassword(oldPassword)) return false;
+    fingerprintPassword(current, newPassword);
+    touch();
+    return true;
+  }
+
+  function hasEmail(p) {
+    p = p || current;
+    return !!(p && p.mail && p.msalt);
+  }
+
+  // Add, change or (with an empty email) remove the reset email.
+  function setEmail(email, password) {
+    if (current.guest || !hasPassword() || !checkPassword(password)) return false;
+    fingerprintEmail(current, email);
+    touch();
+    return true;
+  }
+
+  function mailMatches(p, email) {
+    return hasEmail(p) && TT.hash.secret(emailKey(email), p.msalt) === p.mail;
+  }
+
+  // Forgot password: the email given at sign-up lets you choose a new one.
+  function resetPassword(id, email, newPassword) {
+    var p = findPlayer(id);
+    if (!p || !mailMatches(p, email)) return false;
+    fingerprintPassword(p, newPassword);
+    p.updated = Date.now();
+    savePlayers();
+    emit("players");
+    return true;
+  }
+
+  // Deactivate: removes the account and its progress from this device.
+  function deletePlayer(password) {
+    if (current.guest || !checkPassword(password)) return false;
     var id = current.id;
     // Kept as a marker so online sync doesn't bring the player back.
     current.deleted = true;
-    current.name = "";
-    current.pin = "";
+    ["first", "last", "name", "pwd", "salt", "mail", "msalt"].forEach(function (k) { current[k] = ""; });
     current.updated = Date.now();
     savePlayers();
     remove(KEYS.player + id);
     signOut();
     emit("deleted", id);
+    return true;
   }
 
   // ---- saving ----
@@ -296,25 +382,65 @@ TT.store = (function () {
   }
 
   // ---- backup file ----
+  // A backup holds the account (names and password fingerprint, never the
+  // password itself) and its progress, so it can sign in on another device.
 
   function exportJson() {
     var s = snapshot();
     s.app = "touch-time";
-    s.version = 2;
-    s.player = current ? current.name : "";
+    s.version = 3;
+    if (!current.guest) {
+      s.account = {
+        id: current.id, first: current.first || "", last: current.last || "", name: current.name,
+        pwd: current.pwd || "", salt: current.salt || "", mail: current.mail || "", msalt: current.msalt || "",
+        created: current.created, updated: current.updated
+      };
+    }
     return JSON.stringify(s, null, 1);
   }
 
-  function importJson(text) {
+  function parseBackup(text) {
     var r = JSON.parse(text);
     if (!r || !Array.isArray(r.log)) throw new Error("Not a Touch Time backup");
+    return r;
+  }
+
+  // Restore into the signed-in player (or guest): adds the backup's progress.
+  function importJson(text) {
+    merge(parseBackup(text));
+    save();
+  }
+
+  // Sign in on this device with a backup from another one.
+  // Returns "ok", "no-account" (backup has no account), or "wrong-password".
+  function signInWithBackup(text, password) {
+    var r = parseBackup(text), a = r.account;
+    if (!a || !a.id) return "no-account";
+    if (!checkPassword(password, a)) return "wrong-password";
+    var existing = players.filter(function (p) { return p.id === a.id; })[0];
+    if (existing) {
+      if (existing.deleted) existing.deleted = false;
+      ["first", "last", "name", "pwd", "salt", "mail", "msalt", "created"].forEach(function (k) { existing[k] = a[k]; });
+      existing.updated = Date.now();
+    } else {
+      var copy = {};
+      ["id", "first", "last", "name", "pwd", "salt", "mail", "msalt", "created", "updated"].forEach(function (k) { copy[k] = a[k]; });
+      // Don't clash with a different player of the same profile name here.
+      if (nameTaken(copy.name, copy.id)) copy.name = clean(copy.name, 17) + " (2)";
+      players.push(copy);
+    }
+    savePlayers();
+    write(KEYS.current, a.id);
+    loadPlayer(findPlayer(a.id));
     merge(r);
     save();
+    emit("players");
+    return "ok";
   }
 
   // ---- used by cloud.js ----
 
-  // Adds players from the online account, keeping the newest name and PIN.
+  // Adds players from the online account, keeping the newest details.
   function mergePlayers(list) {
     var changed = false;
     (list || []).forEach(function (p) {
@@ -364,12 +490,18 @@ TT.store = (function () {
     current: function () { return current; },
     isGuest: function () { return !!current.guest; },
     findPlayer: findPlayer,
-    hasPin: hasPin,
+    nameTaken: nameTaken,
     createPlayer: createPlayer,
     signIn: signIn,
     signOut: signOut,
-    renamePlayer: renamePlayer,
-    setPin: setPin,
+    updateProfile: updateProfile,
+    hasPassword: hasPassword,
+    checkPassword: checkPassword,
+    setPassword: setPassword,
+    changePassword: changePassword,
+    hasEmail: hasEmail,
+    setEmail: setEmail,
+    resetPassword: resetPassword,
     deletePlayer: deletePlayer,
     logTime: logTime,
     addResult: addResult,
@@ -382,6 +514,7 @@ TT.store = (function () {
     deletePractice: deletePractice,
     exportJson: exportJson,
     importJson: importJson,
+    signInWithBackup: signInWithBackup,
     mergePlayers: mergePlayers,
     playerData: playerData,
     mergePlayerData: mergePlayerData
