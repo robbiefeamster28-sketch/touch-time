@@ -40,24 +40,30 @@ TT.sessions = (function () {
   }
 
   // ---- practice: several drills in a row ----
+  // Each drill waits for the player to tap Start, and any drill can be skipped.
 
-  var run = null; // { name, drills, index, seconds, before }
+  var run = null; // { name, drills, index, seconds, before, done, skipped, last }
 
   function practice(p, seconds) {
-    run = { name: p.name, drills: p.drills.filter(s.drill), index: 0, seconds: seconds, before: snapshot() };
+    run = { name: p.name, drills: p.drills.filter(s.drill), index: 0, seconds: seconds, before: snapshot(), done: 0, skipped: 0, last: null };
     intro();
   }
 
-  // "Drill 2 of 5" screen with the demo and what you need.
+  // "Drill 2 of 5" screen with the demo and what you need. Waits for Start.
   function intro() {
     var d = s.drill(run.drills[run.index]);
+    var last = run.last
+      ? '<p class="practice-last">' + (run.last.skipped ? "Skipped " : "✓ ") + esc(run.last.name) + (run.last.skipped ? "" : " done") + "</p>"
+      : "";
     timer.show(
+      last +
       '<small class="muted">Drill ' + (run.index + 1) + " of " + run.drills.length + "</small>" +
       "<h2>" + esc(d.name) + "</h2>" +
       '<div class="demo">' + TT.demo.pitch(d) + "</div>" +
       "<p>You need: " + esc((d.needs || []).join(", ")) + "</p>" +
       '<button class="go" data-action="practice-go">Start ' + fmt(run.seconds) + "</button>" +
-      '<button class="ghost" data-action="timer-close">End practice</button>'
+      '<div class="btnrow"><button class="ghost" data-action="practice-skip">Skip this drill</button>' +
+      '<button class="ghost" data-action="timer-close">End practice</button></div>'
     );
   }
 
@@ -66,20 +72,37 @@ TT.sessions = (function () {
     timer.start({
       title: d.name,
       seconds: run.seconds,
+      buttons: '<button class="ghost" data-action="practice-skip">Skip</button>',
       onDone: function () {
         store.logTime(d.id, run.seconds);
-        run.index++;
-        if (run.index >= run.drills.length) return practiceDone();
-        var rest = store.state.rest;
-        if (rest > 0) timer.rest(rest, s.drill(run.drills[run.index]).name, intro);
-        else intro();
+        run.done++;
+        next(d, false);
       }
     });
   }
 
+  // Skip the current drill: from its Start screen, or while it's running
+  // (no time is counted for a skipped drill).
+  function practiceSkip() {
+    if (!run) return;
+    timer.cancel();
+    run.skipped++;
+    next(s.drill(run.drills[run.index]), true);
+  }
+
+  function next(d, skipped) {
+    run.last = { name: d.name, skipped: skipped };
+    run.index++;
+    if (run.index >= run.drills.length) return practiceDone();
+    var rest = store.state.rest;
+    if (rest > 0 && !skipped) timer.rest(rest, s.drill(run.drills[run.index]).name, intro);
+    else intro();
+  }
+
   function practiceDone() {
-    TT.analytics.event("practice-completed");
-    doneScreen(run.before, "🏆", "+" + fmt(run.drills.length * run.seconds), run.name + " complete!", "Done");
+    var summary = run.done + (run.done === 1 ? " drill" : " drills") + " done" + (run.skipped ? ", " + run.skipped + " skipped" : "");
+    if (run.done) TT.analytics.event("practice-completed");
+    doneScreen(run.before, run.done ? "🏆" : "👋", "+" + fmt(run.done * run.seconds), run.name + ": " + summary + ".", "Done");
     run = null;
   }
 
@@ -142,6 +165,7 @@ TT.sessions = (function () {
     drill: drill,
     practice: practice,
     practiceGo: practiceGo,
+    practiceSkip: practiceSkip,
     test: testIntro,
     testGo: testGo,
     testSave: testSave

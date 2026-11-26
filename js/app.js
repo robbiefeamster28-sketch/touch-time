@@ -96,6 +96,7 @@ window.TT = window.TT || {};
     "close-practice": function () { ui.practice = null; top(); },
     "start-practice": function () { TT.sessions.practice(V.practices.find(ui.practice), ui.length); },
     "practice-go": function () { TT.sessions.practiceGo(); },
+    "practice-skip": function () { TT.sessions.practiceSkip(); },
 
     "new-practice": function () {
       ui.builder = { id: "my" + Date.now(), name: "", drills: [], emoji: "⭐", mine: true, description: "My custom practice" };

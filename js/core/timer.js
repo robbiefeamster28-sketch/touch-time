@@ -74,7 +74,7 @@ TT.timer = (function () {
     );
   }
 
-  // opts: { title, seconds, extra (html under the ring), onDone }
+  // opts: { title, seconds, extra (html under the ring), buttons (html beside Pause), onDone }
   function start(opts) {
     clear();
     keepScreenOn();
@@ -105,7 +105,7 @@ TT.timer = (function () {
       "<h2>" + u.esc(opts.title) + "</h2>" +
       ring(T, !!opts.extra) +
       (opts.extra || "") +
-      '<div class="btnrow"><button class="ghost" id="pz" data-action="timer-pause">Pause</button>' +
+      '<div class="btnrow"><button class="ghost" id="pz" data-action="timer-pause">Pause</button>' + (opts.buttons || "") +
       '<button class="ghost" data-action="timer-close">End</button></div>'
     );
     tick = setInterval(function () {
@@ -166,8 +166,16 @@ TT.timer = (function () {
 
   var skipRest = function () {};
 
+  // Stop the running clock but keep the overlay open (e.g. to skip a drill).
+  function cancel() {
+    clear();
+    releaseScreen();
+    run = null;
+  }
+
   return {
     start: start,
+    cancel: cancel,
     pause: pause,
     rest: rest,
     skipRest: function () { skipRest(); },

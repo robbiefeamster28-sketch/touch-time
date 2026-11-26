@@ -428,3 +428,7 @@ input[type="file"].field { padding: 10px; }
 .star-targets li.got { border-color: var(--gold); }
 .star-targets .need-n { font: 800 22px/1 var(--display); font-variant-numeric: tabular-nums; }
 .drill .t .stars { font-size: 13px; }
+
+/* Practice: what you just did, shown above the next drill. */
+.practice-last { font-weight: 700; color: var(--primary); }
+.timer .btnrow { flex-wrap: wrap; justify-content: center; }
