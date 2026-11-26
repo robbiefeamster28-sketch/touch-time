@@ -31,4 +31,19 @@ for (const page of ["index.html", "privacy.html"]) {
   fs.writeFileSync(file, html);
 }
 
-console.log("www/ ready:", fs.readdirSync(out).join(", "));
+// Version stamp for js/core/update-check.js: one id for this whole build, put
+// into the page and into version.json, so an out-of-date page can tell.
+const all = [];
+(function walk(dir) {
+  for (const name of fs.readdirSync(dir).sort()) {
+    const f = path.join(dir, name);
+    if (fs.statSync(f).isDirectory()) walk(f);
+    else all.push(fs.readFileSync(f));
+  }
+})(out);
+const build = crypto.createHash("sha1").update(Buffer.concat(all)).digest("hex").slice(0, 12);
+const indexFile = path.join(out, "index.html");
+fs.writeFileSync(indexFile, fs.readFileSync(indexFile, "utf8").replace("<head>", `<head>\n  <script>window.TT_BUILD = "${build}";</script>`));
+fs.writeFileSync(path.join(out, "version.json"), JSON.stringify({ build: build }) + "\n");
+
+console.log("www/ ready:", fs.readdirSync(out).join(", "), "· build", build);

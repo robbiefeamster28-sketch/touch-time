@@ -59,8 +59,7 @@ TT.views.drills = (function () {
             var n = TT.views.practices.drillsOf(TT.views.practices.find(ui.practice)).length;
             return '<p class="note small" style="text-align:center;margin:6px 0 10px">Drill ' + (ui.practiceIndex + 1) + " of " + n +
               (ui.practiceIndex + 1 < n ? ", then a 15-second break and preview before each next drill." : ". It’s the last drill in this practice.") + "</p>";
-          })() +
-          '<button class="ghost wide" data-action="start-drill">Do just this drill</button>'
+          })()
         : '<button class="go" data-action="start-drill">Do drill</button>') +
       '<p class="muted small">You’ve put in ' + u.fmt(s.sum(0, d.id)) + " on this drill.</p></div>"
     );
